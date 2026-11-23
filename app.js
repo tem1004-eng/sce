@@ -1,7 +1,7 @@
 /* ================= 대경SCE 화면 스크립트 (자료는 앱스크립트 code.gs 가 보관) ================= */
 
 /* ★ 배포한 웹 앱 주소를 아래 따옴표 안에 넣어 주세요 (예: https://script.google.com/macros/s/.../exec) */
-var API_URL = '여기에_웹앱_주소를_넣으세요';
+var API_URL = 'https://github.com/tem1004-eng/sce';
 
 var BOARDS={
   videos:{coll:'videos',title:'영상 게시판',hint:'유튜브 주소를 넣으면 행사 영상을 모읍니다.',titleField:true,fields:[{k:'url',label:'유튜브 주소',type:'url',req:true},{k:'desc',label:'설명',type:'textarea'}]},
