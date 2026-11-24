@@ -10,8 +10,8 @@
 
 var SHEET_PROP = 'DGSCE_SHEET_ID';
 var FOLDER_PROP = 'DGSCE_FOLDER_ID';
-var COLLECTIONS = ['videos', 'photos', 'songs', 'campsongs', 'sheets', 'suggestions', 'events', 'regs', 'plans', 'cal'];
-var ADMIN_ONLY = ['events', 'regs', 'plans'];
+var COLLECTIONS = ['videos', 'photos', 'songs', 'campsongs', 'sheets', 'suggestions', 'events', 'regs', 'plans', 'cal', 'eventdocs'];
+var ADMIN_ONLY = ['events', 'regs', 'plans', 'eventdocs'];
 var SALT = 'dgsce:';
 var MAX_FILE_MB = 30;
 /* ---------- 웹 앱 입구 ----------
