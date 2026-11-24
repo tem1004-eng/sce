@@ -102,7 +102,17 @@ function homeViewerHTML(){
 var INTRO_TABS={badge:'SCE 뺏지 설명',creed:'SCE 강령',song:'SCE운동가'};
 function introDetailHTML(){
   var k=state.introTab;if(!k||!INTRO_TABS[k])return '';
-  return '<section class="introbox"><div class="bar"><h2>'+INTRO_TABS[k]+'</h2><button class="btn ghost small" data-act="introTab" data-tab="'+k+'">닫기</button></div><p class="empty" style="margin:0">'+INTRO_TABS[k]+'의 내용은 아직 준비 중입니다. 내용을 알려 주시면 이 자리에 넣겠습니다.</p></section>';
+  var body=k==='badge'?badgeHTML():'<p class="empty" style="margin:0">'+INTRO_TABS[k]+'의 내용은 아직 준비 중입니다. 내용을 알려 주시면 이 자리에 넣겠습니다.</p>';
+  return '<section class="introbox"><div class="bar"><h2>'+INTRO_TABS[k]+'</h2><button class="btn ghost small" data-act="introTab" data-tab="'+k+'">닫기</button></div>'+body+'</section>';
+}
+/* SCE 뺏지 설명: 뺏지(로고) 이미지의 내용을 정리한 글 */
+function badgeHTML(){
+  return '<div class="badge-desc">'+
+    '<p><strong>SCE 뺏지</strong>는 파란 방패 모양 안에 흰색 <strong>S·C·E</strong> 글자와 흰 하트를 담고 있으며, 그 하트를 두 손이 받쳐 든 모습입니다.</p>'+
+    '<p><strong>SCE는</strong> 대한예수교장로회 합동교단 소속으로, 그리스도를 위하여 자발적으로 일하는 학생들입니다.</p>'+
+    '<p><strong>하는 일</strong></p>'+
+    '<ul><li>교회연합</li><li>학원선교</li><li>세계복음화를 지향하는 단체입니다.</li></ul>'+
+    '</div>';
 }
 function vIntro(){
   var btns=Object.keys(INTRO_TABS).map(function(k){return '<button class="ibtn" aria-pressed="'+(state.introTab===k)+'" data-act="introTab" data-tab="'+k+'">'+INTRO_TABS[k]+'</button>';}).join('');
