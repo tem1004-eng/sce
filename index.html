@@ -7,6 +7,18 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
+<style>
+.admin-pair{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.guide-btn{background:rgba(255,255,255,.08);color:#fff;border:1px solid #4a5a78;border-radius:9px;padding:7px 12px;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+.guide-btn:hover{background:rgba(255,255,255,.18)}
+.guide{position:fixed;top:120px;right:20px;width:min(440px,calc(100vw - 24px));max-height:70vh;display:flex;flex-direction:column;background:#fff;border:1px solid #c9d3e6;border-radius:14px;box-shadow:0 18px 40px rgba(8,20,42,.28);z-index:60;overflow:hidden}
+.guide[hidden]{display:none}
+.guide-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;background:linear-gradient(135deg,#0b1f3f,#1b3a6b);color:#fff;cursor:move;user-select:none;touch-action:none}
+.guide-head strong{font-size:15px}
+.guide-close{background:#ff6a3d;color:#fff;border:0;border-radius:8px;padding:6px 12px;font-weight:700;cursor:pointer}
+.guide-body{padding:14px 16px;overflow-y:auto;font-size:14px;line-height:1.6;color:#0b1a33}
+.guide-body pre{margin:0;white-space:pre-wrap;word-break:keep-all;font-family:inherit}
+</style>
 </head>
 <body>
 <header>
@@ -18,8 +30,10 @@
         <h1>대경<span>SCE</span></h1>
       </div>
     </a>
+    <div class="admin-pair">
     <button class="btn ghost small" id="adminBtn" data-act="adminOpen" style="color:#fff;border-color:#4a5a78">관리자</button>
-    <button class="btn ghost small" id="guideBtn" type="button" style="color:#fff;border-color:#4a5a78">관리자 사용설명</button>
+    <button type="button" class="guide-btn" id="guideBtn">관리자 사용설명</button>
+    </div>
   </div>
   <nav id="nav" aria-label="메뉴">
     <a href="#intro" data-route="intro">SCE소개</a>
@@ -62,5 +76,31 @@
 
 <script src="app.js"></script>
 <script src="camp.js"></script>
+<script>
+(function(){
+  var g=document.getElementById('guide'),head=document.getElementById('guideHead'),btn=document.getElementById('guideBtn'),close=document.getElementById('guideClose');
+  if(!g||!btn)return;
+  btn.addEventListener('click',function(){g.hidden=!g.hidden;});
+  close.addEventListener('click',function(){g.hidden=true;});
+  var drag=null;
+  head.addEventListener('pointerdown',function(e){
+    if(e.target===close)return;
+    var r=g.getBoundingClientRect();
+    drag={dx:e.clientX-r.left,dy:e.clientY-r.top};
+    g.style.right='auto';g.style.left=r.left+'px';g.style.top=r.top+'px';
+    head.setPointerCapture(e.pointerId);
+    e.preventDefault();
+  });
+  head.addEventListener('pointermove',function(e){
+    if(!drag)return;
+    var w=g.offsetWidth,hh=g.offsetHeight;
+    g.style.left=Math.min(Math.max(0,e.clientX-drag.dx),window.innerWidth-w)+'px';
+    g.style.top=Math.min(Math.max(0,e.clientY-drag.dy),window.innerHeight-hh)+'px';
+  });
+  function endDrag(){drag=null;}
+  head.addEventListener('pointerup',endDrag);
+  head.addEventListener('pointercancel',endDrag);
+})();
+</script>
 </body>
 </html>
