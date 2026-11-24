@@ -11,7 +11,7 @@ var BOARDS={
   sheets:{coll:'sheets',title:'악보 파일 게시판',hint:'악보 파일을 통으로 올릴 수 있습니다. 파일당 최대 30MB.',titleField:true,file:true,fields:[{k:'desc',label:'설명',type:'textarea'}]},
   suggestions:{coll:'suggestions',titleField:true,title:'교회들의 소리함',hint:'건의 사항은 교회명·직분·연락처·내용을 모두 써야 등록됩니다. 연락처는 관리자만 볼 수 있습니다.',reply:true,requiredAll:true,fields:[{k:'church',label:'교회명',req:true},{k:'role',label:'직분',req:true},{k:'contact',label:'연락처',req:true},{k:'desc',label:'건의 내용',type:'textarea',req:true}]}
 };
-var LINKS=[{label:'대경SCE 페이스북',url:''},{label:'대경SCE 유튜브',url:''},{label:'대신대SCE',url:''},{label:'총회학지부',url:''},{label:'대신대학교',url:''}];
+var LINKS=[{label:'대경SCE 페이스북',url:'https://www.facebook.com/p/%EB%8C%80%EA%B5%AC%EA%B2%BD%EB%B6%81-SCE-100092669511776/?locale=ko_KR'},{label:'대경SCE 유튜브',url:'https://www.youtube.com/@%EB%8C%80%EA%B5%AC%EA%B2%BD%EB%B6%81SCE-x7n'},{label:'대신대SCE',url:''},{label:'총회학지부',url:'http://scekorea.org/'},{label:'대신대학교',url:'https://www.daeshin.ac.kr/html/intro/'}];
 var LEADERS=[{role:'위원장',name:'이관영 목사',church:'내일교회',cls:''},{role:'대구지역 총무',name:'김창범 목사',church:'',cls:'sun'},{role:'경북지역 총무',name:'백성현 목사',church:'',cls:'sun'},{role:'행정 총무',name:'윤경화 집사',church:'',cls:'sky'},{role:'회계',name:'최신효 장로',church:'',cls:'sky'}];
 var state={data:{videos:[],photos:[],songs:[],campsongs:[],sheets:[],suggestions:[],events:[],regs:[],plans:[],cal:[],eventdocs:[]},homeTab:'videos',viewEventId:'',admin:false,adminPw:'',adminSet:true,route:'intro',songTab:'good',campTab:'event',eventId:localStorage.getItem('dgsce.event')||'',teamCount:5,roomDraft:null,modal:null};
 
