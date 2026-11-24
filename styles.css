@@ -19,6 +19,7 @@ body{
 header{
   background:linear-gradient(120deg,#08142a 0%,#14294f 60%,#1d3a6b 100%);
   color:#fff;padding:20px 16px 0;position:relative;overflow:hidden;
+  background:linear-gradient(120deg,rgba(8,20,42,.82) 0%,rgba(20,41,79,.72) 60%,rgba(29,58,107,.6) 100%),url('header-bg.png') center 40%/cover no-repeat;
   box-shadow:0 8px 24px rgba(8,20,42,.25);
 }
 header::after{content:"";position:absolute;right:-80px;top:-120px;width:320px;height:320px;border-radius:50%;background:radial-gradient(circle,rgba(255,106,61,.35),transparent 65%);pointer-events:none}
