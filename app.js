@@ -77,7 +77,7 @@ function upcomingItems(){
 function pitemHTML(it){
   var del=(state.admin&&!it.ev)?'<button class="btn ghost small" data-act="planDel" data-id="'+it.id+'">삭제</button>':'';
   return '<div class="pitem"><span class="pdate">'+esc(it.date||'날짜 미정')+'</span><div class="pbody"><h3>'+esc(it.title)+(it.pinned?' <span class="role sun">1번</span>':'')+'</h3>'+(it.desc?'<p class="meta">'+esc(it.desc)+'</p>':'')+
-    '<div class="pactions">'+(it.ev?'<button class="btn small" data-act="viewEvent" data-id="'+it.id+'" aria-pressed="'+(state.viewEventId===it.id)+'">뷰어로 보이기</button>':'')+del+'</div></div></div>';
+    '<div class="pactions">'+(it.ev?'<button class="btn small" data-act="posterGo" data-id="'+it.id+'">행사내용보기</button>':'')+del+'</div></div></div>';
 }
 function planPanelHTML(){
   var list=upcomingItems();var pages=Math.max(1,Math.ceil(list.length/3));
@@ -381,29 +381,3 @@ window.addEventListener('load',function(){
   setInterval(function(){if(!isEditing()&&!state.modal)loadAll().catch(function(){});},30000);
 });
 
-/* ---------- 관리자 사용설명 창: 버튼으로 열고, 상단을 끌어서 이동, 닫기 버튼으로 닫기 ---------- */
-(function(){
-  var g=document.getElementById('guide'),head=document.getElementById('guideHead'),btn=document.getElementById('guideBtn'),close=document.getElementById('guideClose');
-  if(!g||!btn)return;
-  btn.addEventListener('click',function(){g.hidden=!g.hidden;});
-  close.addEventListener('click',function(){g.hidden=true;});
-  var drag=null;
-  head.addEventListener('pointerdown',function(e){
-    if(e.target===close)return;
-    var r=g.getBoundingClientRect();
-    drag={dx:e.clientX-r.left,dy:e.clientY-r.top};
-    g.style.right='auto';g.style.left=r.left+'px';g.style.top=r.top+'px';
-    head.setPointerCapture(e.pointerId);
-    e.preventDefault();
-  });
-  head.addEventListener('pointermove',function(e){
-    if(!drag)return;
-    var w=g.offsetWidth,h=g.offsetHeight;
-    var x=Math.min(Math.max(0,e.clientX-drag.dx),window.innerWidth-w);
-    var y=Math.min(Math.max(0,e.clientY-drag.dy),window.innerHeight-h);
-    g.style.left=x+'px';g.style.top=y+'px';
-  });
-  function endDrag(){drag=null;}
-  head.addEventListener('pointerup',endDrag);
-  head.addEventListener('pointercancel',endDrag);
-})();
