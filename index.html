@@ -19,6 +19,7 @@
       </div>
     </a>
     <button class="btn ghost small" id="adminBtn" data-act="adminOpen" style="color:#fff;border-color:#4a5a78">관리자</button>
+    <button class="btn ghost small" id="guideBtn" type="button" style="color:#fff;border-color:#4a5a78">관리자 사용설명</button>
   </div>
   <nav id="nav" aria-label="메뉴">
     <a href="#intro" data-route="intro">SCE소개</a>
@@ -38,6 +39,25 @@
 <footer>대경SCE · 글은 작성할 때 정한 비밀번호로 수정·삭제할 수 있습니다.</footer>
 
 <div class="overlay" id="overlay" role="dialog" aria-modal="true"><div class="panel" id="panel"></div></div>
+<div class="guide" id="guide" role="dialog" aria-label="관리자 사용방법" hidden>
+  <div class="guide-head" id="guideHead">
+    <strong>관리자 사용방법</strong>
+    <button type="button" class="guide-close" id="guideClose" aria-label="닫기">닫기</button>
+  </div>
+  <div class="guide-body">
+<pre>1. 메인창에 포스터 띄우기
+1) 사역계획·달력에 기초안으로 일정 잡기 - 관리자 비밀번호로 로그인
+2) 그러면 자동으로 "청소년 캠프"에 행사 등록됨
+3) 일반 행사이면 뒤로 가서 나타나고, 그 행사들 가운데
+   가장 핵심 되는 행사 위에 마우스를 올리면 "1번으로 등록"이라는
+   안내 문구가 나옵니다. 클릭하면 그 행사가 1번으로 등록됩니다.
+4) 그 행사의 하위 메뉴가 아래쪽에 나타나면 "편집하기"를 눌러
+   행사 자세한 내용을 남기고, 전단이나 포스터 이미지를 업로드하면
+   메인화면에 행사가 그대로 나타나게 됩니다.
+
+2. 자동 조편성표와 숙소배정표는 관리자 비밀번호로 로그인해야 보입니다</pre>
+  </div>
+</div>
 <div class="toast" id="toast" role="status"></div>
 
 <script src="app.js"></script>

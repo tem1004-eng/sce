@@ -380,3 +380,30 @@ window.addEventListener('load',function(){
   loadAll().catch(function(e){$('#dbNotice').innerHTML='<div class="notice">서버에서 자료를 불러오지 못했습니다: '+esc(e.message)+'</div>';});
   setInterval(function(){if(!isEditing()&&!state.modal)loadAll().catch(function(){});},30000);
 });
+
+/* ---------- 관리자 사용설명 창: 버튼으로 열고, 상단을 끌어서 이동, 닫기 버튼으로 닫기 ---------- */
+(function(){
+  var g=document.getElementById('guide'),head=document.getElementById('guideHead'),btn=document.getElementById('guideBtn'),close=document.getElementById('guideClose');
+  if(!g||!btn)return;
+  btn.addEventListener('click',function(){g.hidden=!g.hidden;});
+  close.addEventListener('click',function(){g.hidden=true;});
+  var drag=null;
+  head.addEventListener('pointerdown',function(e){
+    if(e.target===close)return;
+    var r=g.getBoundingClientRect();
+    drag={dx:e.clientX-r.left,dy:e.clientY-r.top};
+    g.style.right='auto';g.style.left=r.left+'px';g.style.top=r.top+'px';
+    head.setPointerCapture(e.pointerId);
+    e.preventDefault();
+  });
+  head.addEventListener('pointermove',function(e){
+    if(!drag)return;
+    var w=g.offsetWidth,h=g.offsetHeight;
+    var x=Math.min(Math.max(0,e.clientX-drag.dx),window.innerWidth-w);
+    var y=Math.min(Math.max(0,e.clientY-drag.dy),window.innerHeight-h);
+    g.style.left=x+'px';g.style.top=y+'px';
+  });
+  function endDrag(){drag=null;}
+  head.addEventListener('pointerup',endDrag);
+  head.addEventListener('pointercancel',endDrag);
+})();
