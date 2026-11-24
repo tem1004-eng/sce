@@ -1,7 +1,15 @@
 /* ================= 청소년 캠프: 행사 · 등록 · 현황 · 조편성 · 숙소배정 ================= */
 var CAMP_TABS=[['event','행사안내'],['reg','등록'],['status','등록현황'],['churchView','교회 담당자 조회'],['teams','조편성(관리자)'],['rooms','숙소배정(관리자)'],['search','학생 검색(관리자)']];
 var ADMIN_TABS=['teams','rooms','search'];
-function curEvent(){return state.data.events.find(function(e){return e.id===state.eventId;})||null;}
+function curEvent(){return (state.data.cal||[]).find(function(e){return e.id===state.eventId;})||null;}
+/* 청소년 캠프 행사 목록: 1번으로 고정된 행사가 맨 앞, 그다음은 앞으로 있을 행사를 날짜순으로 */
+function campEventList(){
+  var all=(state.data.cal||[]).slice().sort(function(a,b){return String(a.date).localeCompare(String(b.date))||String(a.time||'').localeCompare(String(b.time||''));});
+  var pin=all.filter(function(c){return c.pinned;})[0];
+  var up=all.filter(function(c){return !c.pinned&&String(c.date)>=todayISO();});
+  return (pin?[pin]:[]).concat(up);
+}
+function shortDate(d){return d?String(d).slice(5).replace('-','/'):'';}
 function evRegs(){return state.data.regs.filter(function(r){return r.eventId===state.eventId;});}
 function draftRooms(){
   if(!state.roomDraft){var ev=curEvent();state.roomDraft=(ev&&ev.rooms)?ev.rooms.map(function(r){return Object.assign({},r);}):[{gender:'남',capacity:4,count:3},{gender:'여',capacity:4,count:3}];}
@@ -21,15 +29,18 @@ function regFormHTML(id){
     '<div class="actions">'+(id?'<button type="button" class="btn ghost" data-act="regDel" data-id="'+id+'">삭제</button>':'')+'<button class="btn">'+(id?'저장':'등록')+'</button></div></form>';
 }
 function campEventBar(){
-  var evs=state.data.events.slice().sort(function(a,b){return String(a.date).localeCompare(String(b.date));});
-  return '<div class="bar"><h2>청소년 캠프</h2>'+(state.admin?'<button class="btn" data-act="eventNew">행사 만들기</button>':'')+'</div><div class="evbar">'+(evs.map(function(e){return '<button class="evbtn" aria-pressed="'+(e.id===state.eventId)+'" data-act="pickEvent" data-id="'+e.id+'">'+esc(e.title)+'</button>';}).join('')||'<span class="hint">등록된 행사가 없습니다. 관리자가 행사 제목을 정하면 여기에 새로 나타납니다.</span>')+'</div>';
+  var list=campEventList();var pages=Math.max(1,Math.ceil(list.length/5));
+  var pg=Math.min(Math.max(0,state.evPage||0),pages-1);state.evPage=pg;
+  var btns=list.slice(pg*5,pg*5+5).map(function(e,i){return '<button class="evbtn" aria-pressed="'+(e.id===state.eventId)+'" data-act="pickEvent" data-id="'+e.id+'"><span class="evno">'+(pg*5+i+1)+'번</span>'+esc(e.title)+'<small>'+esc(shortDate(e.date))+(e.pinned?' · 고정':'')+'</small></button>';}).join('');
+  var nav=list.length>5?'<div class="evnav"><button class="btn ghost small" data-act="evPage" data-d="-1" '+(pg===0?'disabled':'')+'>◀ 이전</button><span class="meta">'+(pg+1)+' / '+pages+'</span><button class="btn ghost small" data-act="evPage" data-d="1" '+(pg>=pages-1?'disabled':'')+'>다음 ▶</button></div>':'';
+  return '<div class="bar"><h2>청소년 캠프</h2><span class="hint" style="margin:0">행사는 사역계획·달력에서 남기면 여기에 차례로 나타납니다.</span></div><div class="evbar">'+(btns||'<span class="hint">앞으로 예정된 행사가 없습니다.</span>')+'</div>'+nav;
 }
 function vCamp(){
   var ev=curEvent();var tabs=CAMP_TABS.filter(function(t){return ADMIN_TABS.indexOf(t[0])<0||state.admin;});
   if(!state.admin&&ADMIN_TABS.indexOf(state.campTab)>=0)state.campTab='event';
   var body='';
   if(!ev){body='<p class="empty">행사를 선택하면 등록·현황을 볼 수 있습니다.</p>';}
-  else if(state.campTab==='event'){body='<div class="card" style="cursor:default"><h3>'+esc(ev.title)+'</h3><p class="meta">'+esc(ev.date||'')+' '+esc(ev.place||'')+'</p><p>교회별로 목사·교사·학생을 등록합니다. 관리자가 조편성과 숙소를 정하면 자동으로 배정됩니다.</p><button class="btn" data-act="regNew">등록하기</button></div>'+docsHTML(ev);}
+  else if(state.campTab==='event'){body='<div class="card" style="cursor:default"><h3>'+esc(ev.title)+'</h3><p class="meta">'+esc(ev.date||'')+' '+esc(ev.place||'')+'</p><p>교회별로 목사·교사·학생을 등록합니다. 관리자가 조편성과 숙소를 정하면 자동으로 배정됩니다.</p><button class="btn" data-act="regNew">등록하기</button>'+pinControlHTML(ev)+'</div>'+docsHTML(ev);}
   else if(state.campTab==='reg'){body='<div class="card" style="cursor:default"><h3>'+esc(ev.title)+' 등록</h3><p class="hint">교회명, 구분(목회자·교사·학생), 성별, 이름을 입력하세요. 학생은 학교와 학년도 고릅니다.</p>'+regFormHTML(null)+'</div>';}
   else if(state.campTab==='status'){
     var rs=evRegs();var churches={};
@@ -67,6 +78,10 @@ function edocFormHTML(m){
     '<p class="hint">포스터는 이미지 파일(10MB 이하)로 올리세요. 공문·공지 첨부는 30MB 이하입니다.</p><p class="err"></p>'+
     '<div class="actions"><button type="button" class="btn ghost" data-act="close">취소</button><button class="btn">'+(m.id?'저장':'올리기')+'</button></div></form>';
 }
+function pinControlHTML(ev){
+  return '<div style="margin-top:12px">'+(ev.pinned?'<span class="role sun">1번으로 고정됨</span><span class="meta"> 메인 화면 오른쪽 포스터 창에 이 행사가 나타납니다.</span>':'')+
+    (state.admin?'<div class="actions" style="justify-content:flex-start"><button class="btn small dark" data-act="pinEvent" data-id="'+ev.id+'" data-on="'+(!ev.pinned)+'">'+(ev.pinned?'1번 고정 해제':'1번으로 고정')+'</button></div>':'')+'</div>';
+}
 function churchResultHTML(q){
   var rs=evRegs().filter(function(r){return r.church.indexOf(q)>=0;});
   if(!rs.length)return '<p class="empty">일치하는 교회가 없습니다.</p>';
@@ -99,13 +114,18 @@ function roomOptions(list,cur){var o='<option value="">미배정</option>';list.
 
 /* ---------- 캠프 이벤트 ---------- */
 Object.assign(ACT,{
+  evPage:function(d){state.evPage=Math.max(0,(state.evPage||0)+Number(d.d));render();},
+  pinEvent:function(d){
+    if(!state.admin)return;var on=d.on==='true';
+    call('api_pinEvent',on?d.id:null,state.adminPw).then(function(){state.viewEventId='';state.evPage=0;toast(on?'1번으로 고정했습니다.':'고정을 해제했습니다.');return loadAll();}).catch(function(e){toast(e.message);});
+  },
   edocNew:function(d){if(state.admin)openModal('edoc',{eventId:d.event||state.eventId,id:null});},
   edocEdit:function(d){if(state.admin){var doc=(state.data.eventdocs||[]).find(function(x){return x.id===d.id;});openModal('edoc',{eventId:doc?doc.eventId:state.eventId,id:d.id});}},
   edocDel:function(d){if(state.admin&&confirm('이 자료를 삭제할까요?'))call('api_delete','eventdocs',d.id,state.adminPw).then(function(){toast('삭제되었습니다.');return loadAll();}).catch(function(e){toast(e.message);});},
   edocMain:function(d){
     if(!state.admin)return;
     var doc=(state.data.eventdocs||[]).find(function(x){return x.id===d.id;});if(!doc||!doc.image){toast('포스터 이미지가 없습니다.');return;}
-    call('api_update','events',doc.eventId,{mainPoster:{url:doc.image,title:doc.title},mainAt:Date.now()},state.adminPw)
+    call('api_update','cal',doc.eventId,{mainPoster:{url:doc.image,title:doc.title},mainAt:Date.now()},state.adminPw)
       .then(function(){toast('메인 화면에 포스터를 보냈습니다.');return loadAll();}).catch(function(e){toast(e.message);});
   },
   pickEvent:function(d){state.eventId=d.id;state.roomDraft=null;localStorage.setItem('dgsce.event',d.id);render();},

@@ -56,24 +56,28 @@ function markLiked(key,id){try{localStorage.setItem('lk:'+key+':'+id,'1');}catch
 
 /* ---------- 화면 ---------- */
 /* 메인 화면: 위쪽에 사역계획(왼쪽)과 포스터(오른쪽), 가운데 게시판 뷰어, 아래에 소개 */
+function pinnedEvent(){return (state.data.cal||[]).find(function(c){return c.pinned;})||null;}
+function posterOf(ev){
+  if(ev.mainPoster&&ev.mainPoster.url)return ev.mainPoster.url;
+  var docs=(state.data.eventdocs||[]).filter(function(d){return d.eventId===ev.id&&d.kind==='poster'&&d.image;}).sort(function(a,b){return (b.createdAt||0)-(a.createdAt||0);});
+  return docs[0]?docs[0].image:'';
+}
 function planPanelHTML(){
   var items=(state.data.plans||[]).map(function(p){return {date:p.date||'',title:p.title,desc:p.desc,ev:false};})
-    .concat((state.data.events||[]).map(function(e){return {date:e.date||'',title:e.title,desc:e.place,ev:true,id:e.id};}))
+    .concat((state.data.cal||[]).map(function(c){return {date:c.date||'',title:c.title,desc:(c.time?c.time+' · ':'')+(c.name||''),ev:true,id:c.id,pinned:!!c.pinned};}))
     .sort(function(a,b){return String(a.date).localeCompare(String(b.date));});
   var list=items.map(function(it){
-    return '<div class="pitem"><span class="pdate">'+esc(it.date||'날짜 미정')+'</span><div style="flex:1;min-width:0"><h3>'+esc(it.title)+'</h3>'+(it.desc?'<p class="meta">'+esc(it.desc)+'</p>':'')+
+    return '<div class="pitem"><span class="pdate">'+esc(it.date||'날짜 미정')+'</span><div style="flex:1;min-width:0"><h3>'+esc(it.title)+(it.pinned?' <span class="role sun">1번</span>':'')+'</h3>'+(it.desc?'<p class="meta">'+esc(it.desc)+'</p>':'')+
       (it.ev?'<button class="btn small" data-act="viewEvent" data-id="'+it.id+'" aria-pressed="'+(state.viewEventId===it.id)+'">뷰어로 보이기</button>':'')+'</div></div>';
   }).join('');
   return '<div class="col"><div class="bar"><h2 style="font-size:20px">사역계획</h2><a class="meta" href="#plan">전체 보기 →</a></div><div class="plist">'+(list||'<p class="empty">계획된 사역이 없습니다.</p>')+'</div></div>';
 }
 function posterPanelHTML(){
-  var ev=(state.data.events||[]).find(function(e){return e.id===state.viewEventId;});
-  if(!ev){
-    ev=(state.data.events||[]).filter(function(e){return e.mainPoster&&e.mainPoster.url;}).sort(function(a,b){return (b.mainAt||0)-(a.mainAt||0);})[0];
-  }
-  var poster=ev&&ev.mainPoster&&ev.mainPoster.url;
-  if(!poster)return '<div class="col"><h2 style="font-size:20px">포스터</h2><div class="poster"><p class="empty" style="border:0">'+(ev?esc(ev.title)+'의 포스터가 아직 메인창에 보내지지 않았습니다.':'아직 메인창에 보낸 포스터가 없습니다.')+'</p></div></div>';
-  return '<div class="col"><h2 style="font-size:20px">'+esc(ev.title)+'</h2><div class="poster" data-act="posterGo" data-id="'+ev.id+'" role="button" tabindex="0"><img src="'+esc(poster)+'" alt="'+esc(ev.title)+' 포스터"></div><p class="hint">포스터를 누르면 청소년 캠프 행사 안내로 이동합니다.</p></div>';
+  var ev=(state.viewEventId&&(state.data.cal||[]).find(function(c){return c.id===state.viewEventId;}))||pinnedEvent();
+  if(!ev)return '<div class="col"><h2 style="font-size:20px">포스터</h2><div class="poster"><p class="empty" style="border:0">청소년 캠프에서 행사를 1번으로 고정하면 여기에 포스터가 나타납니다.</p></div></div>';
+  var poster=posterOf(ev);
+  if(!poster)return '<div class="col"><h2 style="font-size:20px">'+esc(ev.title)+'</h2><div class="poster"><p class="empty" style="border:0">이 행사의 포스터가 아직 없습니다. 청소년 캠프 &gt; 행사안내에서 올려 주세요.</p></div></div>';
+  return '<div class="col"><h2 style="font-size:20px">'+esc(ev.title)+'</h2><div class="poster" data-act="posterGo" data-id="'+ev.id+'" role="button" tabindex="0"><img src="'+esc(poster)+'" alt="'+esc(ev.title)+' 포스터"></div><p class="hint">포스터를 누르면 청소년 캠프 행사안내로 이동합니다.</p></div>';
 }
 function homeViewerHTML(){
   var tab=state.homeTab||'videos';

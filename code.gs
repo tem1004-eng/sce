@@ -193,7 +193,9 @@ function api_create(coll, fields, pw) {
     if (COLLECTIONS.indexOf(coll) < 0) throw new Error('잘못된 게시판입니다.');
     var f = fields || {};
     var obj = omit_(f, ['pw', 'pwHash', 'id']);
-    if (ADMIN_ONLY.indexOf(coll) >= 0) {
+    if (coll === 'regs') {
+      /* 교회별 등록은 누구나 할 수 있습니다 (수정·삭제는 관리자만) */
+    } else if (ADMIN_ONLY.indexOf(coll) >= 0) {
       if (!isAdmin_(pw)) throw new Error('관리자만 할 수 있습니다.');
     } else if (coll === 'suggestions' || coll === 'videos' || coll === 'photos' || coll === 'songs' || coll === 'campsongs' || coll === 'sheets' || coll === 'cal') {
       if (!f.name || !f.pw) throw new Error('이름과 비밀번호를 입력해 주세요.');
@@ -327,8 +329,23 @@ function api_assignRooms(eventId, draft, pw) {
         put_('regs', p.id, p);
       });
     });
-    var ev = getOne_('events', eventId);
-    if (ev) { ev.rooms = draft; put_('events', eventId, ev); }
+    var ev = getOne_('cal', eventId);
+    if (ev) { ev.rooms = draft; put_('cal', eventId, ev); }
+    return true;
+  });
+}
+
+/* ---------- 1번 고정 (관리자): 한 번에 하나의 행사만 고정. id가 없으면 고정 해제 ---------- */
+function api_pinEvent(id, pw) {
+  return locked_(function () {
+    if (!isAdmin_(pw)) throw new Error('관리자만 할 수 있습니다.');
+    readAll_('cal').forEach(function (c) {
+      var want = !!id && c.id === String(id);
+      if (!!c.pinned !== want) {
+        c.pinned = want;
+        put_('cal', c.id, c);
+      }
+    });
     return true;
   });
 }
