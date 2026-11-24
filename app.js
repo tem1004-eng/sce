@@ -58,6 +58,7 @@ function markLiked(key,id){try{localStorage.setItem('lk:'+key+':'+id,'1');}catch
 /* 메인 화면: 위쪽에 사역계획(왼쪽)과 포스터(오른쪽), 가운데 게시판 뷰어, 아래에 소개 */
 function pinnedEvent(){return (state.data.cal||[]).find(function(c){return c.pinned;})||null;}
 function posterOf(ev){
+  if(ev.image)return ev.image;
   if(ev.mainPoster&&ev.mainPoster.url)return ev.mainPoster.url;
   var docs=(state.data.eventdocs||[]).filter(function(d){return d.eventId===ev.id&&d.kind==='poster'&&d.image;}).sort(function(a,b){return (b.createdAt||0)-(a.createdAt||0);});
   return docs[0]?docs[0].image:(ev.image||'');

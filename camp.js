@@ -31,7 +31,7 @@ function regFormHTML(id){
 function campEventBar(){
   var list=campEventList();var pages=Math.max(1,Math.ceil(list.length/5));
   var pg=Math.min(Math.max(0,state.evPage||0),pages-1);state.evPage=pg;
-  var btns=list.slice(pg*5,pg*5+5).map(function(e,i){return '<button class="evbtn" aria-pressed="'+(e.id===state.eventId)+'" data-act="pickEvent" data-id="'+e.id+'"><span class="evno">'+(pg*5+i+1)+'번</span>'+esc(e.title)+'<small>'+esc(shortDate(e.date))+(e.pinned?' · 고정':'')+'</small></button>';}).join('');
+  var btns=list.slice(pg*5,pg*5+5).map(function(e,i){return '<button class="evbtn" aria-pressed="'+(e.id===state.eventId)+'" data-act="pickEvent" data-id="'+e.id+'"><span class="evno">'+(pg*5+i+1)+'번</span>'+esc(e.title)+'<small>'+esc(shortDate(e.date))+(e.pinned?' · 고정':'')+'</small>'+(state.admin?'<span class="evtip" role="button" tabindex="0" data-act="pinEvent" data-id="'+e.id+'" data-on="'+(!e.pinned)+'">'+(e.pinned?'1번 등록 해제':'1번으로 등록')+'</span>':'')+'</button>';}).join('');
   var nav=list.length>5?'<div class="evnav"><button class="btn ghost small" data-act="evPage" data-d="-1" '+(pg===0?'disabled':'')+'>◀ 이전</button><span class="meta">'+(pg+1)+' / '+pages+'</span><button class="btn ghost small" data-act="evPage" data-d="1" '+(pg>=pages-1?'disabled':'')+'>다음 ▶</button></div>':'';
   return '<div class="bar"><h2>청소년 캠프</h2><span class="hint" style="margin:0">행사는 사역계획·달력에서 남기면 여기에 차례로 나타납니다.</span></div><div class="evbar">'+(btns||'<span class="hint">앞으로 예정된 행사가 없습니다.</span>')+'</div>'+nav;
 }
