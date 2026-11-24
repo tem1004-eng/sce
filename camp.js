@@ -158,11 +158,12 @@ $('#view').addEventListener('focusout',function(){setTimeout(function(){if(!isEd
 
 /* ---------- 행사 정보 (자세한 내용 · 이미지 · 편집) ---------- */
 function eventInfoHTML(ev){
-  return '<div class="card" style="cursor:default"><h3>'+esc(ev.title)+'</h3><p class="meta">'+esc(ev.date||'')+' '+esc(ev.time||'')+' '+esc(ev.place||'')+'</p>'+
-    (ev.image?'<img src="'+esc(ev.image)+'" alt="'+esc(ev.title)+'" style="max-width:100%;border-radius:10px;margin:10px 0">':'')+
+  var info='<div class="evinfo"><h3 style="font-size:20px">'+esc(ev.title)+'</h3><p class="meta">'+esc(ev.date||'')+' '+esc(ev.time||'')+' '+esc(ev.place||'')+'</p>'+
     (ev.detail?'<p style="white-space:pre-line">'+esc(ev.detail)+'</p>':'')+
     pinControlHTML(ev)+
     '<div class="actions" style="justify-content:flex-start"><button class="btn" data-act="evEdit" data-id="'+ev.id+'">편집하기</button></div></div>';
+  var pic=ev.image?'<div class="evpic"><img src="'+esc(ev.image)+'" alt="'+esc(ev.title)+'"></div>':'';
+  return '<div class="card evwrap" style="cursor:default">'+pic+info+'</div>';
 }
 function evinfoFormHTML(m){
   var ev=(state.data.cal||[]).find(function(c){return c.id===m.id;})||{};
