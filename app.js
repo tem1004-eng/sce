@@ -60,7 +60,7 @@ function pinnedEvent(){return (state.data.cal||[]).find(function(c){return c.pin
 function posterOf(ev){
   if(ev.mainPoster&&ev.mainPoster.url)return ev.mainPoster.url;
   var docs=(state.data.eventdocs||[]).filter(function(d){return d.eventId===ev.id&&d.kind==='poster'&&d.image;}).sort(function(a,b){return (b.createdAt||0)-(a.createdAt||0);});
-  return docs[0]?docs[0].image:'';
+  return docs[0]?docs[0].image:(ev.image||'');
 }
 function planPanelHTML(){
   var items=(state.data.plans||[]).map(function(p){return {date:p.date||'',title:p.title,desc:p.desc,ev:false};})
@@ -120,7 +120,7 @@ window.addEventListener('hashchange',route);
 function renderModal(keep){
   var m=state.modal;
   if(!m){$('#overlay').classList.remove('open');return;}
-  if(keep&&['write','photos','cal','plan','event','reg','edoc'].indexOf(m.type)>=0)return;
+  if(keep&&['write','photos','cal','plan','event','reg','edoc','evinfo'].indexOf(m.type)>=0)return;
   $('#overlay').classList.add('open');
   $('#panel').innerHTML='<button class="x" data-act="close" aria-label="닫기">×</button>'+modalBody(m);
 }
@@ -135,6 +135,7 @@ function modalBody(m){
   if(m.type==='plan')return '<form data-form="plan"><h3>일정 추가</h3><div class="row2"><label>날짜<input type="date" name="date" required></label><label>제목<input name="title" required></label></div><label>내용<textarea name="desc"></textarea></label><p class="err"></p><div class="actions"><button class="btn">추가</button></div></form>';
   if(m.type==='reg')return regFormHTML(m.id);
   if(m.type==='edoc')return edocFormHTML(m);
+  if(m.type==='evinfo')return evinfoFormHTML(m);
   return '';
 }
 function detailHTML(key,p){

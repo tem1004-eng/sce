@@ -349,3 +349,41 @@ function api_pinEvent(id, pw) {
     return true;
   });
 }
+
+/* ---------- 행사 정보 수정 (관리자 전용) ---------- */
+function api_updateEvent(id, fields, pw) {
+  return locked_(function () {
+    if (!isAdmin_(pw)) throw new Error('관리자 비밀번호가 맞지 않습니다.');
+    var rec = getOne_('cal', id);
+    if (!rec) throw new Error('행사를 찾을 수 없습니다.');
+    var keep = ['title', 'date', 'time', 'place', 'detail', 'image'];
+    var f = fields || {};
+    keep.forEach(function (k) { if (f[k] !== undefined) rec[k] = f[k]; });
+    put_('cal', id, rec);
+    return true;
+  });
+}
+
+/* ---------- 단체 등록: 교회 한 곳의 여러 사람을 한 번에 등록 (누구나) ---------- */
+function api_registerGroup(eventId, church, people) {
+  return locked_(function () {
+    if (!eventId || !getOne_('cal', eventId)) throw new Error('행사를 찾을 수 없습니다.');
+    var c = String(church || '').trim();
+    if (!c) throw new Error('교회명을 입력해 주세요.');
+    if (!people || !people.length) throw new Error('등록할 사람을 한 명 이상 입력해 주세요.');
+    var rows = people.map(function (p, i) {
+      var no = (i + 1) + '번째 사람: ';
+      var role = p.role;
+      if (['목회자', '교사', '학생'].indexOf(role) < 0) throw new Error(no + '구분을 골라 주세요.');
+      if (['남', '여'].indexOf(p.gender) < 0) throw new Error(no + '성별을 골라 주세요.');
+      var name = String(p.name || '').trim();
+      if (!name) throw new Error(no + '이름을 입력해 주세요.');
+      var school = role === '학생' ? String(p.school || '') : '';
+      var grade = role === '학생' ? String(p.grade || '') : '';
+      if (role === '학생' && (!school || !grade)) throw new Error(no + '학생은 학교와 학년을 골라 주세요.');
+      return { eventId: eventId, church: c, role: role, school: school, grade: grade, gender: p.gender, name: name, createdAt: Date.now(), views: 0, likes: 0 };
+    });
+    rows.forEach(function (r) { put_('regs', uid_(), r); });
+    return rows.length;
+  });
+}

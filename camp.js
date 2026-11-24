@@ -1,5 +1,5 @@
 /* ================= 청소년 캠프: 행사 · 등록 · 현황 · 조편성 · 숙소배정 ================= */
-var CAMP_TABS=[['event','행사안내'],['reg','등록'],['status','등록현황'],['churchView','교회 담당자 조회'],['teams','조편성(관리자)'],['rooms','숙소배정(관리자)'],['search','학생 검색(관리자)']];
+var CAMP_TABS=[['event','행사안내'],['reg','등록'],['churchView','교회 담당자 조회'],['search','학생 검색(관리자)'],['teams','조편성보기(관리자)'],['rooms','숙소배정보기(관리자)'],['status','등록현황']];
 var ADMIN_TABS=['teams','rooms','search'];
 function curEvent(){return (state.data.cal||[]).find(function(e){return e.id===state.eventId;})||null;}
 /* 청소년 캠프 행사 목록: 1번으로 고정된 행사가 맨 앞, 그다음은 앞으로 있을 행사를 날짜순으로 */
@@ -40,14 +40,9 @@ function vCamp(){
   if(!state.admin&&ADMIN_TABS.indexOf(state.campTab)>=0)state.campTab='event';
   var body='';
   if(!ev){body='<p class="empty">행사를 선택하면 등록·현황을 볼 수 있습니다.</p>';}
-  else if(state.campTab==='event'){body='<div class="card" style="cursor:default"><h3>'+esc(ev.title)+'</h3><p class="meta">'+esc(ev.date||'')+' '+esc(ev.place||'')+'</p><p>교회별로 목사·교사·학생을 등록합니다. 관리자가 조편성과 숙소를 정하면 자동으로 배정됩니다.</p><button class="btn" data-act="regNew">등록하기</button>'+pinControlHTML(ev)+'</div>'+docsHTML(ev);}
-  else if(state.campTab==='reg'){body='<div class="card" style="cursor:default"><h3>'+esc(ev.title)+' 등록</h3><p class="hint">교회명, 구분(목회자·교사·학생), 성별, 이름을 입력하세요. 학생은 학교와 학년도 고릅니다.</p>'+regFormHTML(null)+'</div>';}
-  else if(state.campTab==='status'){
-    var rs=evRegs();var churches={};
-    rs.forEach(function(r){var c=churches[r.church]||(churches[r.church]={t:0,m:0,f:0,pastor:0,teacher:0,student:0});c.t++;if(r.role==='학생')c.student++;else if(r.role==='교사')c.teacher++;else c.pastor++;if(r.gender==='남')c.m++;else c.f++;});
-    var cnt=function(k){return rs.filter(function(r){return r.role===k;}).length;};
-    body='<div class="stat"><div><b>'+rs.length+'</b>합계</div><div><b>'+cnt('목회자')+'</b>목회자</div><div><b>'+cnt('교사')+'</b>교사</div><div><b>'+cnt('학생')+'</b>학생</div></div><div class="table-wrap"><table><tr><th>교회</th><th>목회자</th><th>교사</th><th>학생</th><th>남</th><th>여</th></tr>'+(Object.keys(churches).map(function(k){var c=churches[k];return '<tr><td>'+esc(k)+'</td><td>'+c.pastor+'</td><td>'+c.teacher+'</td><td>'+c.student+'</td><td>'+c.m+'</td><td>'+c.f+'</td></tr>';}).join('')||'<tr><td colspan="6">등록자가 없습니다.</td></tr>')+'</table></div>';
-  }
+  else if(state.campTab==='event'){body=eventInfoHTML(ev)+docsHTML(ev);}
+  else if(state.campTab==='reg'){body=groupRegHTML();}
+  else if(state.campTab==='status'){body=statusHTML();}
   else if(state.campTab==='churchView'){body='<p class="hint">교회명을 입력하고 검색하면 우리 교회의 조와 숙소를 볼 수 있습니다.</p><form data-form="churchSearch" class="row2" style="align-items:end"><label>교회명<input name="q" required value="'+esc(state.churchQ||'')+'"></label><button class="btn" style="margin-bottom:12px">검색</button></form><div>'+(state.churchQ?churchResultHTML(state.churchQ):'')+'</div>';}
   else if(state.campTab==='teams'){body=teamsHTML();}
   else if(state.campTab==='rooms'){body=roomsHTML();}
@@ -158,5 +153,91 @@ Object.assign(SUBMIT,{
   churchSearch:async function(f){state.churchQ=val(f,'q');render();},
   nameSearch:async function(f){state.nameQ=val(f,'q');render();}
 });
-/* 등록 탭에서 입력 중에는 화면을 다시 그리지 않도록 focusout 뒤에 한 번 맞춰 줍니다 */
-$('#view').addEventListener('focusout',function(){setTimeout(function(){if(!isEditing())render();},150);});
+/* 등록 탭에서는 입력 중인 내용을 지우지 않도록 화면을 다시 그리지 않습니다 */
+$('#view').addEventListener('focusout',function(){setTimeout(function(){if(!isEditing()&&state.campTab!=='reg')render();},150);});
+
+/* ---------- 행사 정보 (자세한 내용 · 이미지 · 편집) ---------- */
+function eventInfoHTML(ev){
+  return '<div class="card" style="cursor:default"><h3>'+esc(ev.title)+'</h3><p class="meta">'+esc(ev.date||'')+' '+esc(ev.time||'')+' '+esc(ev.place||'')+'</p>'+
+    (ev.image?'<img src="'+esc(ev.image)+'" alt="'+esc(ev.title)+'" style="max-width:100%;border-radius:10px;margin:10px 0">':'')+
+    (ev.detail?'<p style="white-space:pre-line">'+esc(ev.detail)+'</p>':'')+
+    pinControlHTML(ev)+
+    '<div class="actions" style="justify-content:flex-start"><button class="btn" data-act="evEdit" data-id="'+ev.id+'">편집하기</button></div></div>';
+}
+function evinfoFormHTML(m){
+  var ev=(state.data.cal||[]).find(function(c){return c.id===m.id;})||{};
+  return '<form data-form="evinfo" data-id="'+esc(m.id)+'"><h3>행사 편집</h3>'+
+    '<label>행사 제목<input name="title" value="'+esc(ev.title||'')+'" required></label>'+
+    '<div class="row3"><label>날짜<input type="date" name="date" value="'+esc(ev.date||'')+'"></label><label>시간<input type="time" name="time" value="'+esc(ev.time||'')+'"></label><label>장소<input name="place" value="'+esc(ev.place||'')+'"></label></div>'+
+    '<label>자세한 내용<textarea name="detail" style="min-height:160px">'+esc(ev.detail||'')+'</textarea></label>'+
+    '<label>행사 이미지'+(ev.image?' (새로 고르면 바뀝니다)':'')+'<input type="file" name="image" accept="image/*"></label>'+
+    '<label>관리자 비밀번호<input type="password" name="pw" required></label><p class="err"></p>'+
+    '<div class="actions"><button type="button" class="btn ghost" data-act="close">취소</button><button class="btn">저장</button></div></form>';
+}
+
+/* ---------- 단체 등록: 교회 이름 한 번, 사람은 여러 명 ---------- */
+function newGrpRow(){return {role:'학생',gender:'남',school:'',grade:'',name:''};}
+function grpState(){if(!state.grp)state.grp={church:'',rows:[newGrpRow()]};return state.grp;}
+function groupRegHTML(){
+  var g=grpState();
+  var opt=function(list,cur){return list.map(function(o){return '<option '+(o===cur?'selected':'')+'>'+o+'</option>';}).join('');};
+  var rows=g.rows.map(function(r,i){
+    return '<div class="grow">'+
+      '<select data-g="role" data-i="'+i+'">'+opt(['목회자','교사','학생'],r.role)+'</select>'+
+      '<select data-g="gender" data-i="'+i+'">'+opt(['남','여'],r.gender)+'</select>'+
+      (r.role==='학생'?'<select data-g="school" data-i="'+i+'"><option value="">학교</option>'+opt(['중학교','고등학교'],r.school)+'</select><select data-g="grade" data-i="'+i+'"><option value="">학년</option>'+opt(['1','2','3'],r.grade)+'</select>':'<span></span><span></span>')+
+      '<input data-g="name" data-i="'+i+'" placeholder="이름" value="'+esc(r.name)+'">'+
+      '<button type="button" class="btn ghost small" data-act="grpDel" data-i="'+i+'">삭제</button></div>';
+  }).join('');
+  return '<div class="card" style="cursor:default"><h3>단체 등록</h3><p class="hint">교회 이름을 한 번 적고, 사람을 한 명씩 또는 여러 명 추가해서 한꺼번에 등록할 수 있습니다. 목회자·교사는 학교·학년을 고르지 않습니다.</p>'+
+    '<form data-form="group"><label>교회명<input data-g="church" value="'+esc(g.church)+'" required></label><div class="grows">'+rows+'</div>'+
+    '<div class="actions" style="justify-content:flex-start"><button type="button" class="btn ghost small" data-act="grpAdd">사람 추가</button></div><p class="err"></p>'+
+    '<div class="actions"><button class="btn">'+g.rows.length+'명 등록하기</button></div></form></div>';
+}
+
+/* ---------- 등록현황: 교회별 요약 + 전체 명단 ---------- */
+function statusHTML(){
+  var rs=evRegs().slice().sort(function(a,b){return String(a.church).localeCompare(String(b.church))||String(a.role).localeCompare(String(b.role))||String(a.name).localeCompare(String(b.name));});
+  var churches={};
+  rs.forEach(function(r){var c=churches[r.church]||(churches[r.church]={t:0,m:0,f:0,pastor:0,teacher:0,student:0});c.t++;if(r.role==='학생')c.student++;else if(r.role==='교사')c.teacher++;else c.pastor++;if(r.gender==='남')c.m++;else c.f++;});
+  var cnt=function(k){return rs.filter(function(r){return r.role===k;}).length;};
+  var summary='<div class="stat"><div><b>'+rs.length+'</b>합계</div><div><b>'+cnt('목회자')+'</b>목회자</div><div><b>'+cnt('교사')+'</b>교사</div><div><b>'+cnt('학생')+'</b>학생</div></div><div class="table-wrap"><table><tr><th>교회</th><th>목회자</th><th>교사</th><th>학생</th><th>남</th><th>여</th></tr>'+(Object.keys(churches).map(function(k){var c=churches[k];return '<tr><td>'+esc(k)+'</td><td>'+c.pastor+'</td><td>'+c.teacher+'</td><td>'+c.student+'</td><td>'+c.m+'</td><td>'+c.f+'</td></tr>';}).join('')||'<tr><td colspan="6">등록자가 없습니다.</td></tr>')+'</table></div>';
+  var all=rs.length?'<h2 style="font-size:20px;margin-top:20px">전체 명단</h2><div class="table-wrap"><table><tr><th>교회</th><th>구분</th><th>학교</th><th>학년</th><th>성별</th><th>이름</th><th>조</th><th>숙소</th></tr>'+rs.map(function(r){return '<tr><td>'+esc(r.church)+'</td><td>'+esc(r.role)+'</td><td>'+esc(r.school||'-')+'</td><td>'+esc(r.grade?r.grade+'학년':'-')+'</td><td>'+esc(r.gender)+'</td><td>'+esc(r.name)+'</td><td>'+(r.team?r.team+'조':'미편성')+'</td><td>'+esc(r.room||'미배정')+'</td></tr>';}).join('')+'</table></div>':'<p class="empty">아직 등록된 사람이 없습니다.</p>';
+  return summary+all;
+}
+
+/* 단체 등록 입력값은 바로 상태에 기억해 두어, 화면을 다시 그려도 사라지지 않게 합니다 */
+document.addEventListener('input',function(e){
+  var t=e.target;if(!t.dataset||!t.dataset.g)return;var g=grpState();
+  if(t.dataset.g==='church'){g.church=t.value;return;}
+  var r=g.rows[+t.dataset.i];if(r)r[t.dataset.g]=t.value;
+});
+document.addEventListener('change',function(e){
+  var t=e.target;if(!t.dataset||!t.dataset.g||t.dataset.g==='church')return;
+  var r=grpState().rows[+t.dataset.i];if(!r)return;r[t.dataset.g]=t.value;
+  if(t.dataset.g==='role')render();
+});
+Object.assign(ACT,{
+  evEdit:function(d){openModal('evinfo',{id:d.id});},
+  grpAdd:function(){grpState().rows.push(newGrpRow());render();},
+  grpDel:function(d){var g=grpState();if(g.rows.length>1)g.rows.splice(+d.i,1);render();}
+});
+Object.assign(SUBMIT,{
+  group:async function(f){
+    var g=grpState();
+    if(!state.eventId){setErr(f,'행사를 먼저 선택해 주세요.');return;}
+    await call('api_registerGroup',state.eventId,g.church,g.rows);
+    var n=g.rows.length;state.grp=null;toast(n+'명을 등록했습니다.');await loadAll();
+  },
+  evinfo:async function(f){
+    var id=f.dataset.id;var pw=val(f,'pw');
+    if(!pw){setErr(f,'관리자 비밀번호를 입력해 주세요.');return;}
+    var fields={title:val(f,'title'),date:val(f,'date'),time:val(f,'time'),place:val(f,'place'),detail:val(f,'detail')};
+    if(!fields.title){setErr(f,'행사 제목을 입력해 주세요.');return;}
+    var file=f.elements.image.files[0];
+    if(file){if(!/^image\//.test(file.type)){setErr(f,'이미지 파일만 올릴 수 있습니다.');return;}fields.image=(await uploadFile(file,10)).url;}
+    await call('api_updateEvent',id,fields,pw);
+    closeModal();toast('저장되었습니다.');await loadAll();
+  }
+});
+

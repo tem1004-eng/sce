@@ -104,6 +104,9 @@ label input,label select,label textarea{margin-top:4px}
 .evno{display:inline-block;background:rgba(255,255,255,.25);border-radius:6px;padding:0 6px;margin-right:8px;font-size:14px}
 .evnav{display:flex;align-items:center;gap:10px;margin:-4px 0 16px}
 .evbtn[aria-pressed="true"]{background:#d9461b;box-shadow:inset 0 -4px 0 #8a2d0f}
+.grow{display:grid;grid-template-columns:1fr .8fr 1fr .8fr 1.4fr auto;gap:8px;align-items:center;margin-bottom:8px}
+.grow input,.grow select{width:100%;margin:0}
+@media (max-width:800px){.grow{grid-template-columns:1fr 1fr}.grow button{grid-column:span 2}}
 @media (max-width:800px){.split,.row2,.row3,.homeTop{grid-template-columns:1fr}.hero h2{font-size:30px}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 footer{max-width:1080px;margin:0 auto;padding:0 16px 40px;color:var(--muted);font-size:13px}
