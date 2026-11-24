@@ -13,7 +13,7 @@ var BOARDS={
 };
 var LINKS=[{label:'대경SCE 페이스북',url:'https://www.facebook.com/p/%EB%8C%80%EA%B5%AC%EA%B2%BD%EB%B6%81-SCE-100092669511776/?locale=ko_KR'},{label:'대경SCE 유튜브',url:'https://www.youtube.com/@%EB%8C%80%EA%B5%AC%EA%B2%BD%EB%B6%81SCE-x7n'},{label:'대신대SCE',url:''},{label:'총회학지부',url:'http://scekorea.org/'},{label:'대신대학교',url:'https://www.daeshin.ac.kr/html/intro/'}];
 var LEADERS=[{role:'위원장',name:'이관영 목사',church:'내일교회',cls:''},{role:'대구지역 총무',name:'김창범 목사',church:'',cls:'sun'},{role:'경북지역 총무',name:'백성현 목사',church:'',cls:'sun'},{role:'행정 총무',name:'윤경화 집사',church:'',cls:'sky'},{role:'회계',name:'최신효 장로',church:'',cls:'sky'}];
-var state={data:{videos:[],photos:[],songs:[],campsongs:[],sheets:[],suggestions:[],events:[],regs:[],plans:[],cal:[],eventdocs:[]},homeTab:'videos',viewEventId:'',admin:false,adminPw:'',adminSet:true,route:'intro',songTab:'good',campTab:'event',eventId:localStorage.getItem('dgsce.event')||'',teamCount:5,roomDraft:null,modal:null};
+var state={data:{videos:[],photos:[],songs:[],campsongs:[],sheets:[],suggestions:[],events:[],regs:[],plans:[],cal:[],eventdocs:[]},homeTab:'videos',introTab:'',viewEventId:'',admin:false,adminPw:'',adminSet:true,route:'intro',songTab:'good',campTab:'event',eventId:localStorage.getItem('dgsce.event')||'',teamCount:5,roomDraft:null,modal:null};
 
 var $=function(s){return document.querySelector(s);};
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
@@ -98,7 +98,26 @@ function homeViewerHTML(){
   var tabs=[['videos','영상'],['photos','사진'],['songs','찬양']];
   return '<div class="tabs">'+tabs.map(function(t){return '<button aria-pressed="'+(tab===t[0])+'" data-act="homeTab" data-tab="'+t[0]+'">'+t[1]+'</button>';}).join('')+'</div><div class="viewer">'+boardHTML(tab)+'</div>';
 }
-function vIntro(){return '<section><div class="homeTop">'+planPanelHTML()+posterPanelHTML()+'</div></section><section>'+homeViewerHTML()+'</section><section class="hero"><p class="kicker">DAEGYEONG SCE</p><h2>장소가 아니라 사람을 세우는 청소년 사역</h2><p>대구·경북 지역 청소년들과 함께 예수님을 만나고 자라도록 섬기는 사역단체입니다. <small>(소개 문구는 초안이므로 수정해 주세요)</small></p></section><section><h2>함께 하는 단체</h2><div class="linkgrid">'+LINKS.map(function(l){return l.url?'<a href="'+esc(l.url)+'">'+esc(l.label)+' ↗</a>':'<span class="off">'+esc(l.label)+'<br><small>주소 준비 중</small></span>';}).join('')+'</div></section>';}
+/* SCE소개: 소개글 상자 + 세 개의 버튼(뺏지 설명·강령·운동가) + 함께 하는 단체 */
+var INTRO_TABS={badge:'SCE 뺏지 설명',creed:'SCE 강령',song:'SCE운동가'};
+function introDetailHTML(){
+  var k=state.introTab;if(!k||!INTRO_TABS[k])return '';
+  return '<section class="introbox"><div class="bar"><h2>'+INTRO_TABS[k]+'</h2><button class="btn ghost small" data-act="introTab" data-tab="'+k+'">닫기</button></div><p class="empty" style="margin:0">'+INTRO_TABS[k]+'의 내용은 아직 준비 중입니다. 내용을 알려 주시면 이 자리에 넣겠습니다.</p></section>';
+}
+function vIntro(){
+  var btns=Object.keys(INTRO_TABS).map(function(k){return '<button class="ibtn" aria-pressed="'+(state.introTab===k)+'" data-act="introTab" data-tab="'+k+'">'+INTRO_TABS[k]+'</button>';}).join('');
+  return '<section class="hero"><p class="kicker">DAEGYEONG SCE</p><h2>장소가 아니라 사람을 세우는 청소년 사역</h2><p>대구·경북 지역 청소년들과 함께 예수님을 만나고 자라도록 섬기는 사역단체입니다. <small>(소개 문구는 초안이므로 수정해 주세요)</small></p><div class="ibtns">'+btns+'</div></section>'+
+    introDetailHTML()+
+    '<section><h2>함께 하는 단체</h2><div class="linkgrid">'+LINKS.map(function(l){return l.url?'<a href="'+esc(l.url)+'" target="_blank" rel="noopener">'+esc(l.label)+' ↗</a>':'<span class="off">'+esc(l.label)+'<br><small>주소 준비 중</small></span>';}).join('')+'</div></section>';
+}
+/* 메인: 위쪽 사역계획 · 포스터, 아래 영상 · 사진 · 찬양 게시판 */
+function homeBoardSec(key){
+  var cfg=BOARDS[key];var list=(state.data[cfg.coll]||[]).slice().sort(byDate).slice(0,3);
+  return '<section><div class="bar"><h2>'+cfg.title+'</h2><a class="meta" href="#'+key+'">더보기 →</a></div><div class="cards">'+(list.map(function(p){return postCard(key,p);}).join('')||'<p class="empty">아직 올라온 글이 없습니다.</p>')+'</div></section>';
+}
+function vHome(){
+  return '<section><div class="homeTop">'+planPanelHTML()+posterPanelHTML()+'</div></section>'+homeBoardSec('videos')+homeBoardSec('photos')+homeBoardSec('songs');
+}
 function vPeople(){return '<section><h2>섬기는 분들</h2><div class="cards">'+LEADERS.map(function(l){return '<article class="card"><span class="role '+l.cls+'">'+esc(l.role)+'</span><h3>'+esc(l.name)+'</h3>'+(l.church?'<p class="meta">'+esc(l.church)+'</p>':'')+'</article>';}).join('')+'</div></section>';}
 function vPlan(){
   var addBtn=state.admin?'<button class="btn small" data-act="planNew">일정 추가</button>':'';
@@ -124,7 +143,7 @@ function vVoice(){
   return '<section><div class="bar"><h2>'+cfg.title+'</h2><button class="btn" data-act="write" data-key="suggestions">글쓰기</button></div><p class="hint">'+esc(cfg.hint)+'</p>'+
     '<div class="table-wrap"><table class="board"><tr><th>번호</th><th>제목</th><th>교회</th><th>직분</th><th>작성자</th><th>날짜</th><th>조회</th><th>좋아요</th></tr>'+(rows||'<tr><td colspan="8" class="nil">아직 올라온 글이 없습니다.</td></tr>')+'</table></div></section>';
 }
-var VIEWS={intro:vIntro,people:vPeople,plan:vPlan,videos:function(){return vBoard('videos');},photos:function(){return vBoard('photos');},songs:vSongs,camp:function(){return vCamp();},voice:vVoice};
+var VIEWS={home:vHome,intro:vIntro,people:vPeople,plan:vPlan,videos:function(){return vBoard('videos');},photos:function(){return vBoard('photos');},songs:vSongs,camp:function(){return vCamp();},voice:vVoice};
 function render(){
   $('#view').innerHTML=VIEWS[state.route]();
   renderModal(true);
@@ -135,7 +154,7 @@ function renderAdminState(){
 }
 function route(){
   var h=location.hash.replace('#','');
-  state.route=['intro','people','plan','videos','photos','songs','camp','voice'].indexOf(h)>=0?h:'intro';
+  state.route=['home','intro','people','plan','videos','photos','songs','camp','voice'].indexOf(h)>=0?h:'home';
   document.querySelectorAll('#nav a').forEach(function(a){a.setAttribute('aria-current',a.dataset.route===state.route?'page':'false');});
   render();window.scrollTo({top:0});
 }
@@ -237,6 +256,7 @@ var ACT={
   calMove:function(d){calInit();var p=state.calYM.split('-').map(Number);var t=new Date(Date.UTC(p[0],p[1]-1+Number(d.d),1));state.calYM=t.getUTCFullYear()+'-'+String(t.getUTCMonth()+1).padStart(2,'0');render();},
   calNew:function(){calInit();openModal('cal',{date:state.calDay});},
   calDel:function(d){if(state.admin)call('api_delete','cal',d.id,state.adminPw).then(loadAll).catch(function(e){toast(e.message);});else openModal('pw',{key:'cal',id:d.id,then:'del'});},
+  introTab:function(d){state.introTab=state.introTab===d.tab?'':d.tab;render();},
   homePg:function(d){state.homePage=Math.max(0,(state.homePage||0)+Number(d.d));render();},
   homeTab:function(d){state.homeTab=d.tab;render();},
   viewEvent:function(d){state.viewEventId=d.id;render();},
