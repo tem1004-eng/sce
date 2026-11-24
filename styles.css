@@ -145,7 +145,7 @@ label input,label select,label textarea{margin-top:4px}
 .split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:26px;align-items:start}
 .col{min-width:0;display:flex;flex-direction:column}
 .pitem{display:flex;gap:14px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin-bottom:10px;box-shadow:0 2px 10px rgba(11,26,51,.04)}
-.pdate{font-family:var(--display);color:var(--sun);white-space:nowrap;min-width:82px;font-size:15px;padding-top:2px}
+.pdate{font-family:var(--display);color:#fff;white-space:nowrap;min-width:84px;font-size:14px;text-align:center;padding:7px 10px;border-radius:11px;background:linear-gradient(135deg,#0b1a33,#1c3a6e);box-shadow:0 4px 10px rgba(11,26,51,.25);align-self:flex-start}
 .pbody{flex:1;min-width:0}
 .pbody h3{margin-bottom:2px}
 .pactions{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
@@ -166,15 +166,17 @@ label input,label select,label textarea{margin-top:4px}
 .homeTop{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:20px;align-items:start;margin-bottom:30px}
 .panel-head{height:40px;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px;min-width:0}
 .panel-head h2{margin:0;font-size:21px}
-.plist-wrap{height:var(--boxH);display:flex;flex-direction:column;background:rgba(255,255,255,.75);border:1px solid var(--line);border-radius:18px;padding:12px;box-shadow:var(--shadow)}
+.plist-wrap{height:var(--boxH);display:flex;flex-direction:column;background:linear-gradient(180deg,#ffffff 0%,#f4f8fc 100%);border:1px solid #dfe7f2;border-radius:20px;padding:14px;box-shadow:0 14px 34px rgba(11,26,51,.10),inset 0 1px 0 #fff}
 .plist{flex:1;overflow:hidden;min-height:0}
-.plist .pitem{margin-bottom:8px;padding:11px 14px}
+.plist .pitem{margin-bottom:10px;padding:12px 14px 12px 16px;border-radius:14px;border:1px solid #e4ebf5;border-left:4px solid var(--sun);background:#fff;box-shadow:0 4px 12px rgba(11,26,51,.06);align-items:center;transition:transform .2s,box-shadow .2s}
+.plist .pitem:hover{transform:translateY(-2px);box-shadow:0 10px 22px rgba(11,26,51,.12)}
+.plist .pitem .pbody h3{font-size:16px;line-height:1.35}
 .plist .pitem:last-child{margin-bottom:0}
 .plist .empty{padding:18px}
 .plist-wrap .evnav{margin:8px 0 0;justify-content:center}
 .poster-box{height:var(--boxH);position:relative;background:linear-gradient(160deg,#ffffff,#f1f6fb);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);cursor:pointer;overflow:hidden;transition:border-color .2s,transform .2s}
 .poster-box:hover,.poster-box:focus-visible{border-color:var(--sky);transform:translateY(-1px)}
-.poster-box img{position:absolute;inset:12px;width:calc(100% - 24px);height:calc(100% - 24px);object-fit:contain;border-radius:10px}
+.poster-box img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:0}
 .poster-box.empty-box{cursor:default;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center;color:var(--muted)}
 .poster-box.empty-box:hover{transform:none;border-color:var(--line)}
 /* 가운데 게시판 뷰어 */
