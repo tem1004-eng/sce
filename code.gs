@@ -11,7 +11,7 @@
 var SHEET_PROP = 'DGSCE_SHEET_ID';
 var FOLDER_PROP = 'DGSCE_FOLDER_ID';
 var COLLECTIONS = ['videos', 'photos', 'songs', 'campsongs', 'sheets', 'suggestions', 'events', 'regs', 'plans', 'cal', 'eventdocs'];
-var ADMIN_ONLY = ['events', 'regs', 'plans', 'eventdocs'];
+var ADMIN_ONLY = ['events', 'plans', 'eventdocs'];
 var SALT = 'dgsce:';
 var MAX_FILE_MB = 30;
 /* ---------- 웹 앱 입구 ----------
@@ -365,8 +365,9 @@ function api_updateEvent(id, fields, pw) {
 }
 
 /* ---------- 단체 등록: 교회 한 곳의 여러 사람을 한 번에 등록 (누구나) ---------- */
-function api_registerGroup(eventId, church, people) {
+function api_registerGroup(eventId, church, people, pw) {
   return locked_(function () {
+    if (String(pw || '').length < 4) throw new Error('비밀번호는 4자 이상이어야 합니다.');
     if (!eventId || !getOne_('cal', eventId)) throw new Error('행사를 찾을 수 없습니다.');
     var c = String(church || '').trim();
     if (!c) throw new Error('교회명을 입력해 주세요.');
@@ -381,9 +382,17 @@ function api_registerGroup(eventId, church, people) {
       var school = role === '학생' ? String(p.school || '') : '';
       var grade = role === '학생' ? String(p.grade || '') : '';
       if (role === '학생' && (!school || !grade)) throw new Error(no + '학생은 학교와 학년을 골라 주세요.');
-      return { eventId: eventId, church: c, role: role, school: school, grade: grade, gender: p.gender, name: name, createdAt: Date.now(), views: 0, likes: 0 };
+      return { eventId: eventId, church: c, role: role, school: school, grade: grade, gender: p.gender, name: name, pwHash: hash_(pw), createdAt: Date.now(), views: 0, likes: 0 };
     });
     rows.forEach(function (r) { put_('regs', uid_(), r); });
     return rows.length;
   });
+}
+
+/* ---------- 내 등록 찾기: 교회명 + 비밀번호(등록할 때 정한 것 또는 관리자)로 고칠 수 있는 등록만 보여 줍니다 ---------- */
+function api_listMyRegs(eventId, church, pw) {
+  var c = String(church || '').trim();
+  return readAll_('regs').filter(function (r) {
+    return r.eventId === eventId && r.church === c && canEdit_(r, pw);
+  }).map(function (r) { return omit_(r, ['pwHash']); });
 }

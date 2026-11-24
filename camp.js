@@ -179,21 +179,40 @@ function evinfoFormHTML(m){
 /* ---------- 단체 등록: 교회 이름 한 번, 사람은 여러 명 ---------- */
 function newGrpRow(){return {role:'학생',gender:'남',school:'',grade:'',name:''};}
 function grpState(){if(!state.grp)state.grp={church:'',rows:[newGrpRow()]};return state.grp;}
+function optList(list,cur){return list.map(function(o){return '<option '+(o===cur?'selected':'')+'>'+o+'</option>';}).join('');}
 function groupRegHTML(){
   var g=grpState();
-  var opt=function(list,cur){return list.map(function(o){return '<option '+(o===cur?'selected':'')+'>'+o+'</option>';}).join('');};
   var rows=g.rows.map(function(r,i){
     return '<div class="grow">'+
-      '<select data-g="role" data-i="'+i+'">'+opt(['목회자','교사','학생'],r.role)+'</select>'+
-      '<select data-g="gender" data-i="'+i+'">'+opt(['남','여'],r.gender)+'</select>'+
-      (r.role==='학생'?'<select data-g="school" data-i="'+i+'"><option value="">학교</option>'+opt(['중학교','고등학교'],r.school)+'</select><select data-g="grade" data-i="'+i+'"><option value="">학년</option>'+opt(['1','2','3'],r.grade)+'</select>':'<span></span><span></span>')+
+      '<select data-g="role" data-i="'+i+'">'+optList(['목회자','교사','학생'],r.role)+'</select>'+
+      '<select data-g="gender" data-i="'+i+'">'+optList(['남','여'],r.gender)+'</select>'+
+      (r.role==='학생'?'<select data-g="school" data-i="'+i+'"><option value="">학교</option>'+optList(['중학교','고등학교'],r.school)+'</select><select data-g="grade" data-i="'+i+'"><option value="">학년</option>'+optList(['1','2','3'],r.grade)+'</select>':'<span></span><span></span>')+
       '<input data-g="name" data-i="'+i+'" placeholder="이름" value="'+esc(r.name)+'">'+
       '<button type="button" class="btn ghost small" data-act="grpDel" data-i="'+i+'">삭제</button></div>';
   }).join('');
-  return '<div class="card" style="cursor:default"><h3>단체 등록</h3><p class="hint">교회 이름을 한 번 적고, 사람을 한 명씩 또는 여러 명 추가해서 한꺼번에 등록할 수 있습니다. 목회자·교사는 학교·학년을 고르지 않습니다.</p>'+
-    '<form data-form="group"><label>교회명<input data-g="church" value="'+esc(g.church)+'" required></label><div class="grows">'+rows+'</div>'+
+  var form='<div class="card" style="cursor:default"><h3>단체 등록</h3><p class="hint">교회 이름과 비밀번호를 한 번 적고, 사람을 한 명씩 또는 여러 명 추가해서 한꺼번에 등록합니다. 여기서 정한 비밀번호로 나중에 등록 내용을 고치거나 지울 수 있습니다.</p>'+
+    '<form data-form="group"><div class="row2"><label>교회명<input data-g="church" value="'+esc(g.church)+'" required></label><label>비밀번호 (수정·삭제용, 4자 이상)<input type="password" data-g="pw" value="'+esc(g.pw||'')+'" required></label></div><div class="grows">'+rows+'</div>'+
     '<div class="actions" style="justify-content:flex-start"><button type="button" class="btn ghost small" data-act="grpAdd">사람 추가</button></div><p class="err"></p>'+
     '<div class="actions"><button class="btn">'+g.rows.length+'명 등록하기</button></div></form></div>';
+  return form+myRegsHTML();
+}
+/* 등록 내용 찾기 · 수정 · 삭제 */
+function myRegsHTML(){
+  var q=state.myQ;var rows=state.myRows;
+  var look='<div class="card" style="cursor:default;margin-top:18px"><h3>등록 내용 수정·삭제</h3><p class="hint">등록할 때 쓴 교회명과 비밀번호를 넣으면 그 교회의 등록 내용이 나옵니다. 관리자 비밀번호를 넣으면 어느 교회든 고칠 수 있습니다.</p>'+
+    '<form data-form="myLookup" class="row2" style="align-items:end"><label>교회명<input name="church" required value="'+esc(q?q.church:'')+'"></label><label>비밀번호<input type="password" name="pw" required></label><div style="grid-column:1/-1"><button class="btn small">찾기</button></div><p class="err"></p></form>';
+  if(!rows)return look+'</div>';
+  if(!rows.length)return look+'<p class="empty">교회명과 비밀번호가 맞는 등록이 없습니다.</p></div>';
+  var table='<div class="table-wrap" style="margin-top:12px"><table><tr><th>교회</th><th>구분</th><th>학교</th><th>학년</th><th>성별</th><th>이름</th><th></th></tr>'+rows.map(function(r){return '<tr><td>'+esc(r.church)+'</td><td>'+esc(r.role)+'</td><td>'+esc(r.school||'-')+'</td><td>'+esc(r.grade?r.grade+'학년':'-')+'</td><td>'+esc(r.gender)+'</td><td>'+esc(r.name)+'</td><td><button class="btn ghost small" data-act="myEdit" data-id="'+r.id+'">수정</button> <button class="btn ghost small" data-act="myDel" data-id="'+r.id+'">삭제</button></td></tr>';}).join('')+'</table></div>';
+  return look+table+'</div>';
+}
+function regEditFormHTML(id){
+  var r=(state.myRows||[]).find(function(x){return x.id===id;})||{};
+  return '<form data-form="regedit" data-id="'+esc(id)+'"><h3>등록 내용 수정</h3>'+
+    '<div class="row2"><label>교회명<input name="church" value="'+esc(r.church||'')+'" required></label><label>구분<select name="role">'+optList(['목회자','교사','학생'],r.role||'학생')+'</select></label></div>'+
+    '<div class="row3"><label>학교<select name="school"><option value="">-</option>'+optList(['중학교','고등학교'],r.school||'')+'</select></label><label>학년<select name="grade"><option value="">-</option>'+optList(['1','2','3'],r.grade||'')+'</select></label><label>성별<select name="gender">'+optList(['남','여'],r.gender||'남')+'</select></label></div>'+
+    '<label>이름<input name="name" value="'+esc(r.name||'')+'" required></label><p class="err"></p>'+
+    '<div class="actions"><button type="button" class="btn ghost" data-act="close">취소</button><button class="btn">저장</button></div></form>';
 }
 
 /* ---------- 등록현황: 교회별 요약 + 전체 명단 ---------- */
@@ -210,7 +229,7 @@ function statusHTML(){
 /* 단체 등록 입력값은 바로 상태에 기억해 두어, 화면을 다시 그려도 사라지지 않게 합니다 */
 document.addEventListener('input',function(e){
   var t=e.target;if(!t.dataset||!t.dataset.g)return;var g=grpState();
-  if(t.dataset.g==='church'){g.church=t.value;return;}
+  if(t.dataset.i===undefined){g[t.dataset.g]=t.value;return;}
   var r=g.rows[+t.dataset.i];if(r)r[t.dataset.g]=t.value;
 });
 document.addEventListener('change',function(e){
@@ -219,6 +238,11 @@ document.addEventListener('change',function(e){
   if(t.dataset.g==='role')render();
 });
 Object.assign(ACT,{
+  myEdit:function(d){if(state.myQ)openModal('regedit',{id:d.id});},
+  myDel:function(d){
+    if(!state.myQ||!confirm('이 등록을 삭제할까요?'))return;
+    call('api_delete','regs',d.id,state.myQ.pw).then(function(){toast('삭제되었습니다.');return myLookup();}).then(loadAll).catch(function(e){toast(e.message);});
+  },
   evEdit:function(d){openModal('evinfo',{id:d.id});},
   grpAdd:function(){grpState().rows.push(newGrpRow());render();},
   grpDel:function(d){var g=grpState();if(g.rows.length>1)g.rows.splice(+d.i,1);render();}
@@ -227,8 +251,23 @@ Object.assign(SUBMIT,{
   group:async function(f){
     var g=grpState();
     if(!state.eventId){setErr(f,'행사를 먼저 선택해 주세요.');return;}
-    await call('api_registerGroup',state.eventId,g.church,g.rows);
-    var n=g.rows.length;state.grp=null;toast(n+'명을 등록했습니다.');await loadAll();
+    if(String(g.pw||'').length<4){setErr(f,'비밀번호는 4자 이상으로 정해 주세요.');return;}
+    await call('api_registerGroup',state.eventId,g.church,g.rows,g.pw);
+    var n=g.rows.length;state.myQ={church:String(g.church).trim(),pw:g.pw};state.grp=null;
+    toast(n+'명을 등록했습니다.');await myLookup();await loadAll();
+  },
+  myLookup:async function(f){
+    var church=val(f,'church'),pw=val(f,'pw');
+    if(!church||!pw){setErr(f,'교회명과 비밀번호를 입력해 주세요.');return;}
+    state.myQ={church:church,pw:pw};await myLookup();
+  },
+  regedit:async function(f){
+    var v={church:val(f,'church'),role:val(f,'role'),school:val(f,'school'),grade:val(f,'grade'),gender:val(f,'gender'),name:val(f,'name')};
+    if(!v.church||!v.name){setErr(f,'교회명과 이름을 입력해 주세요.');return;}
+    if(v.role==='학생'&&(!v.school||!v.grade)){setErr(f,'학생은 학교와 학년을 선택해 주세요.');return;}
+    if(v.role!=='학생'){v.school='';v.grade='';}
+    await call('api_update','regs',f.dataset.id,v,state.myQ.pw);
+    closeModal();toast('수정되었습니다.');await myLookup();await loadAll();
   },
   evinfo:async function(f){
     var id=f.dataset.id;var pw=val(f,'pw');
@@ -242,3 +281,9 @@ Object.assign(SUBMIT,{
   }
 });
 
+/* 교회명·비밀번호로 고칠 수 있는 등록을 다시 불러옵니다 */
+async function myLookup(){
+  if(!state.myQ||!state.eventId){state.myRows=null;return;}
+  state.myRows=await call('api_listMyRegs',state.eventId,state.myQ.church,state.myQ.pw);
+  render();
+}

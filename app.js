@@ -164,7 +164,7 @@ window.addEventListener('hashchange',route);
 function renderModal(keep){
   var m=state.modal;
   if(!m){$('#overlay').classList.remove('open');return;}
-  if(keep&&['write','photos','cal','plan','event','reg','edoc','evinfo'].indexOf(m.type)>=0)return;
+  if(keep&&['write','photos','cal','plan','event','reg','edoc','evinfo','regedit'].indexOf(m.type)>=0)return;
   $('#overlay').classList.add('open');
   $('#panel').innerHTML='<button class="x" data-act="close" aria-label="닫기">×</button>'+modalBody(m);
 }
@@ -180,6 +180,7 @@ function modalBody(m){
   if(m.type==='reg')return regFormHTML(m.id);
   if(m.type==='edoc')return edocFormHTML(m);
   if(m.type==='evinfo')return evinfoFormHTML(m);
+  if(m.type==='regedit')return regEditFormHTML(m.id);
   return '';
 }
 function detailHTML(key,p){
