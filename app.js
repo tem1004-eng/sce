@@ -9,7 +9,7 @@ var BOARDS={
   songs:{coll:'songs',title:'좋은 찬양',hint:'좋은 찬양을 함께 나눌 수 있습니다. 이미지나 유튜브 링크도 가능합니다.',titleField:true,image:true,fields:[{k:'singer',label:'가수/팀'},{k:'url',label:'유튜브 주소',type:'url'},{k:'desc',label:'설명',type:'textarea'}]},
   campsongs:{coll:'campsongs',title:'캠프 찬양',hint:'캠프 기간에 학생들이 함께 부를 곡을 올립니다.',titleField:true,image:true,fields:[{k:'singer',label:'가수/팀'},{k:'url',label:'유튜브 주소',type:'url'},{k:'desc',label:'설명',type:'textarea'}]},
   sheets:{coll:'sheets',title:'악보 파일 게시판',hint:'악보 파일을 통으로 올릴 수 있습니다. 파일당 최대 30MB.',titleField:true,file:true,fields:[{k:'desc',label:'설명',type:'textarea'}]},
-  suggestions:{coll:'suggestions',title:'교회들의 소리함',hint:'건의 사항은 교회명·직분·연락처·내용을 모두 써야 등록됩니다. 연락처는 관리자만 볼 수 있습니다.',reply:true,requiredAll:true,fields:[{k:'church',label:'교회명',req:true},{k:'role',label:'직분',req:true},{k:'contact',label:'연락처',req:true},{k:'desc',label:'건의 내용',type:'textarea',req:true}]}
+  suggestions:{coll:'suggestions',titleField:true,title:'교회들의 소리함',hint:'건의 사항은 교회명·직분·연락처·내용을 모두 써야 등록됩니다. 연락처는 관리자만 볼 수 있습니다.',reply:true,requiredAll:true,fields:[{k:'church',label:'교회명',req:true},{k:'role',label:'직분',req:true},{k:'contact',label:'연락처',req:true},{k:'desc',label:'건의 내용',type:'textarea',req:true}]}
 };
 var LINKS=[{label:'대경SCE 페이스북',url:''},{label:'대경SCE 유튜브',url:''},{label:'대신대SCE',url:''},{label:'총회학지부',url:''},{label:'대신대학교',url:''}];
 var LEADERS=[{role:'위원장',name:'이관영 목사',church:'내일교회',cls:''},{role:'대구지역 총무',name:'김창범 목사',church:'',cls:'sun'},{role:'경북지역 총무',name:'백성현 목사',church:'',cls:'sun'},{role:'행정 총무',name:'윤경화 집사',church:'',cls:'sky'},{role:'회계',name:'최신효 장로',church:'',cls:'sky'}];
@@ -111,7 +111,19 @@ function vSongs(){
   var key={good:'songs',sheet:'sheets'}[state.songTab]||'songs';
   return '<section><div class="tabs">'+tabs.map(function(t){return '<button aria-pressed="'+(state.songTab===t[0])+'" data-act="songTab" data-tab="'+t[0]+'">'+t[1]+'</button>';}).join('')+'</div>'+boardHTML(key)+'</section>';
 }
-function vVoice(){return vBoard('suggestions');}
+/* 교회들의 소리함: 게시판 목록 + 답글이 달린 글은 바로 아래에 답글 줄이 보입니다 */
+function vVoice(){
+  var cfg=BOARDS.suggestions;
+  var list=(state.data.suggestions||[]).slice().sort(byDate);
+  var rows=list.map(function(p,i){
+    var n=list.length-i;var has=!!p.reply;
+    var main='<tr class="brow" data-act="open" data-key="suggestions" data-id="'+p.id+'" tabindex="0"><td class="num">'+n+'</td><td class="ttl">'+(has?'<span class="rbadge">답글</span>':'')+esc(p.title||excerpt(p)||'(제목 없음)')+'</td><td>'+esc(p.church)+'</td><td>'+esc(p.role)+'</td><td>'+esc(p.name)+'</td><td>'+fmtDate(p.createdAt)+'</td><td>'+(p.views||0)+'</td><td>'+(p.likes||0)+'</td></tr>';
+    var reply=has?'<tr class="rrow" data-act="open" data-key="suggestions" data-id="'+p.id+'"><td></td><td colspan="7"><span class="rtag">↳ 관리자 답글</span> '+esc(String(p.reply).replace(/\s+/g,' ').slice(0,120))+' <span class="meta">· '+fmtDate(p.replyAt)+'</span></td></tr>':'';
+    return main+reply;
+  }).join('');
+  return '<section><div class="bar"><h2>'+cfg.title+'</h2><button class="btn" data-act="write" data-key="suggestions">글쓰기</button></div><p class="hint">'+esc(cfg.hint)+'</p>'+
+    '<div class="table-wrap"><table class="board"><tr><th>번호</th><th>제목</th><th>교회</th><th>직분</th><th>작성자</th><th>날짜</th><th>조회</th><th>좋아요</th></tr>'+(rows||'<tr><td colspan="8" class="nil">아직 올라온 글이 없습니다.</td></tr>')+'</table></div></section>';
+}
 var VIEWS={intro:vIntro,people:vPeople,plan:vPlan,videos:function(){return vBoard('videos');},photos:function(){return vBoard('photos');},songs:vSongs,camp:function(){return vCamp();},voice:vVoice};
 function render(){
   $('#view').innerHTML=VIEWS[state.route]();

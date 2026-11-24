@@ -88,6 +88,18 @@ h3{font-size:17px;margin:0 0 6px;text-wrap:balance;font-weight:700}
 table{border-collapse:collapse;width:100%;font-size:14px}
 th,td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
 th{background:#f0f5fb;font-weight:700;color:var(--ink2)}
+/* 게시판 표 */
+table.board td{white-space:normal}
+table.board .brow{cursor:pointer;transition:background .15s}
+table.board .brow:hover{background:#f3f8fc}
+table.board .brow td{font-weight:500}
+table.board .num{color:var(--muted);width:64px;text-align:center}
+table.board .ttl{min-width:220px}
+table.board .rrow td{background:#fbfdff;font-size:14px;color:#34405a;padding-top:4px;border-top:0;cursor:pointer}
+table.board .rrow:hover td{background:#eef7fb}
+table.board .rtag{color:var(--sky);font-weight:700}
+table.board .rbadge{display:inline-block;background:var(--sky);color:#fff;border-radius:999px;font-size:11px;padding:1px 8px;margin-right:6px;vertical-align:middle}
+table.board .nil{text-align:center;color:var(--muted);padding:24px}
 /* 입력 */
 input,select,textarea{font:inherit;padding:10px 12px;border:1px solid #c5cfdf;border-radius:10px;background:#fff;color:var(--ink);width:100%;max-width:100%;transition:border-color .2s,box-shadow .2s}
 input:focus,select:focus,textarea:focus{outline:none;border-color:var(--sky);box-shadow:0 0 0 3px rgba(27,155,181,.18)}
