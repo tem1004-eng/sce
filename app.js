@@ -63,22 +63,35 @@ function posterOf(ev){
   var docs=(state.data.eventdocs||[]).filter(function(d){return d.eventId===ev.id&&d.kind==='poster'&&d.image;}).sort(function(a,b){return (b.createdAt||0)-(a.createdAt||0);});
   return docs[0]?docs[0].image:(ev.image||'');
 }
+/* 앞으로 다가올 사역: 사역계획 + 사역달력의 일정 (지난 일정은 제외), 1번 고정 행사가 맨 위 */
+function upcomingItems(){
+  var t=todayISO();
+  var items=(state.data.plans||[]).filter(function(p){return String(p.date)>=t;}).map(function(p){return {date:p.date||'',title:p.title,desc:p.desc,ev:false,id:p.id};})
+    .concat((state.data.cal||[]).filter(function(c){return String(c.date)>=t;}).map(function(c){return {date:c.date||'',title:c.title,desc:(c.time?c.time+' · ':'')+(c.name||''),ev:true,id:c.id,pinned:!!c.pinned};}));
+  items.sort(function(a,b){
+    if(!!a.pinned!==!!b.pinned)return a.pinned?-1:1;
+    return String(a.date).localeCompare(String(b.date))||String(a.title).localeCompare(String(b.title));
+  });
+  return items;
+}
+function pitemHTML(it){
+  var del=(state.admin&&!it.ev)?'<button class="btn ghost small" data-act="planDel" data-id="'+it.id+'">삭제</button>':'';
+  return '<div class="pitem"><span class="pdate">'+esc(it.date||'날짜 미정')+'</span><div class="pbody"><h3>'+esc(it.title)+(it.pinned?' <span class="role sun">1번</span>':'')+'</h3>'+(it.desc?'<p class="meta">'+esc(it.desc)+'</p>':'')+
+    '<div class="pactions">'+(it.ev?'<button class="btn small" data-act="viewEvent" data-id="'+it.id+'" aria-pressed="'+(state.viewEventId===it.id)+'">뷰어로 보이기</button>':'')+del+'</div></div></div>';
+}
 function planPanelHTML(){
-  var items=(state.data.plans||[]).map(function(p){return {date:p.date||'',title:p.title,desc:p.desc,ev:false};})
-    .concat((state.data.cal||[]).map(function(c){return {date:c.date||'',title:c.title,desc:(c.time?c.time+' · ':'')+(c.name||''),ev:true,id:c.id,pinned:!!c.pinned};}))
-    .sort(function(a,b){return String(a.date).localeCompare(String(b.date));});
-  var list=items.map(function(it){
-    return '<div class="pitem"><span class="pdate">'+esc(it.date||'날짜 미정')+'</span><div style="flex:1;min-width:0"><h3>'+esc(it.title)+(it.pinned?' <span class="role sun">1번</span>':'')+'</h3>'+(it.desc?'<p class="meta">'+esc(it.desc)+'</p>':'')+
-      (it.ev?'<button class="btn small" data-act="viewEvent" data-id="'+it.id+'" aria-pressed="'+(state.viewEventId===it.id)+'">뷰어로 보이기</button>':'')+'</div></div>';
-  }).join('');
-  return '<div class="col"><div class="bar"><h2 style="font-size:20px">사역계획</h2><a class="meta" href="#plan">전체 보기 →</a></div><div class="plist">'+(list||'<p class="empty">계획된 사역이 없습니다.</p>')+'</div></div>';
+  var list=upcomingItems();var pages=Math.max(1,Math.ceil(list.length/3));
+  var pg=Math.min(Math.max(0,state.homePage||0),pages-1);state.homePage=pg;
+  var html=list.slice(pg*3,pg*3+3).map(pitemHTML).join('')||'<p class="empty">앞으로 예정된 사역이 없습니다.</p>';
+  var nav=list.length>3?'<div class="evnav"><button class="btn ghost small" data-act="homePg" data-d="-1" '+(pg===0?'disabled':'')+'>◀ 이전</button><span class="meta">'+(pg+1)+' / '+pages+'</span><button class="btn ghost small" data-act="homePg" data-d="1" '+(pg>=pages-1?'disabled':'')+'>다음 ▶</button></div>':'';
+  return '<div class="col"><div class="panel-head"><h2>사역계획</h2><a class="meta" href="#plan">전체 보기 →</a></div><div class="plist-wrap"><div class="plist">'+html+'</div>'+nav+'</div></div>';
 }
 function posterPanelHTML(){
   var ev=(state.viewEventId&&(state.data.cal||[]).find(function(c){return c.id===state.viewEventId;}))||pinnedEvent();
-  if(!ev)return '<div class="col"><h2 style="font-size:20px">포스터</h2><div class="poster"><p class="empty" style="border:0">청소년 캠프에서 행사를 1번으로 고정하면 여기에 포스터가 나타납니다.</p></div></div>';
+  if(!ev)return '<div class="col"><div class="panel-head"><h2>포스터</h2></div><div class="poster-box empty-box"><p>청소년 캠프에서 행사를 1번으로 고정하면 여기에 이미지가 나타납니다.</p></div></div>';
   var poster=posterOf(ev);
-  if(!poster)return '<div class="col"><h2 style="font-size:20px">'+esc(ev.title)+'</h2><div class="poster"><p class="empty" style="border:0">이 행사의 포스터가 아직 없습니다. 청소년 캠프 &gt; 행사안내에서 올려 주세요.</p></div></div>';
-  return '<div class="col"><h2 style="font-size:20px">'+esc(ev.title)+'</h2><div class="poster" data-act="posterGo" data-id="'+ev.id+'" role="button" tabindex="0"><img src="'+esc(poster)+'" alt="'+esc(ev.title)+' 포스터"></div><p class="hint">포스터를 누르면 청소년 캠프 행사안내로 이동합니다.</p></div>';
+  if(!poster)return '<div class="col"><div class="panel-head"><h2 class="ell">'+esc(ev.title)+'</h2></div><div class="poster-box empty-box"><p>이 행사의 이미지가 아직 없습니다. 청소년 캠프 &gt; 행사안내 &gt; 편집하기에서 올려 주세요.</p></div></div>';
+  return '<div class="col"><div class="panel-head"><h2 class="ell">'+esc(ev.title)+'</h2></div><div class="poster-box" data-act="posterGo" data-id="'+ev.id+'" role="button" tabindex="0"><img src="'+esc(poster)+'" alt="'+esc(ev.title)+'"></div></div>';
 }
 function homeViewerHTML(){
   var tab=state.homeTab||'videos';
@@ -88,9 +101,8 @@ function homeViewerHTML(){
 function vIntro(){return '<section><div class="homeTop">'+planPanelHTML()+posterPanelHTML()+'</div></section><section>'+homeViewerHTML()+'</section><section class="hero"><p class="kicker">DAEGYEONG SCE</p><h2>장소가 아니라 사람을 세우는 청소년 사역</h2><p>대구·경북 지역 청소년들과 함께 예수님을 만나고 자라도록 섬기는 사역단체입니다. <small>(소개 문구는 초안이므로 수정해 주세요)</small></p></section><section><h2>함께 하는 단체</h2><div class="linkgrid">'+LINKS.map(function(l){return l.url?'<a href="'+esc(l.url)+'">'+esc(l.label)+' ↗</a>':'<span class="off">'+esc(l.label)+'<br><small>주소 준비 중</small></span>';}).join('')+'</div></section>';}
 function vPeople(){return '<section><h2>섬기는 분들</h2><div class="cards">'+LEADERS.map(function(l){return '<article class="card"><span class="role '+l.cls+'">'+esc(l.role)+'</span><h3>'+esc(l.name)+'</h3>'+(l.church?'<p class="meta">'+esc(l.church)+'</p>':'')+'</article>';}).join('')+'</div></section>';}
 function vPlan(){
-  var list=(state.data.plans||[]).slice().sort(function(a,b){return String(a.date).localeCompare(String(b.date));});
   var addBtn=state.admin?'<button class="btn small" data-act="planNew">일정 추가</button>':'';
-  var left=list.map(function(p){return '<div class="pitem"><span class="pdate">'+esc(p.date)+'</span><div><h3>'+esc(p.title)+'</h3>'+(p.desc?'<p class="meta" style="white-space:pre-line">'+esc(p.desc)+'</p>':'')+(state.admin?'<button class="btn ghost small" data-act="planDel" data-id="'+p.id+'">삭제</button>':'')+'</div></div>';}).join('')||'<p class="empty">계획 중인 사역이 없습니다.</p>';
+  var left=upcomingItems().map(pitemHTML).join('')||'<p class="empty">앞으로 예정된 사역이 없습니다.</p>';
   return '<section><div class="split"><div class="col"><div class="bar"><h2>계획 중인 사역</h2>'+addBtn+'</div>'+left+'</div><div class="col"><h2>사역달력</h2><p class="hint">날짜를 누르면 그날의 일정이 보입니다. 시간을 정해 행사를 남길 수 있습니다.</p>'+calHTML()+'</div></div></section>';
 }
 function vBoard(key){return '<section>'+boardHTML(key)+'</section>';}
@@ -213,6 +225,7 @@ var ACT={
   calMove:function(d){calInit();var p=state.calYM.split('-').map(Number);var t=new Date(Date.UTC(p[0],p[1]-1+Number(d.d),1));state.calYM=t.getUTCFullYear()+'-'+String(t.getUTCMonth()+1).padStart(2,'0');render();},
   calNew:function(){calInit();openModal('cal',{date:state.calDay});},
   calDel:function(d){if(state.admin)call('api_delete','cal',d.id,state.adminPw).then(loadAll).catch(function(e){toast(e.message);});else openModal('pw',{key:'cal',id:d.id,then:'del'});},
+  homePg:function(d){state.homePage=Math.max(0,(state.homePage||0)+Number(d.d));render();},
   homeTab:function(d){state.homeTab=d.tab;render();},
   viewEvent:function(d){state.viewEventId=d.id;render();},
   posterGo:function(d){state.eventId=d.id;state.campTab='event';state.roomDraft=null;localStorage.setItem('dgsce.event',d.id);if(location.hash==='#camp')route();else location.hash='#camp';},
