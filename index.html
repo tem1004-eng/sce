@@ -24,6 +24,45 @@ dialog.guide:not([open]){display:none!important}
 .vviewer{background:#fff;border:1px solid #e4ebf5;border-radius:18px;padding:16px;margin-bottom:14px}
 .vplayer h3{margin:4px 0 6px}
 .vpick.on{border-color:#ff6a3d;box-shadow:0 0 0 2px rgba(255,106,61,.25)}
+/* 기기별 화면 구성: 컴퓨터(기본) · 태블릿 · 스마트폰. 접속한 기기의 가로 폭을 읽어 자동으로 맞춥니다 */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+img,iframe,video{max-width:100%}
+/* 태블릿 (768px ~ 1023px) */
+@media (max-width:1023px){
+  main{padding:22px 16px 60px}
+  .logo{height:52px}
+  .brand h1{font-size:28px}
+  .cards{grid-template-columns:repeat(auto-fill,minmax(210px,1fr))}
+  .evwrap{grid-template-columns:1fr}
+  .split{grid-template-columns:1fr}
+  .team-grid{grid-template-columns:repeat(auto-fill,minmax(190px,1fr))}
+}
+/* 스마트폰 (767px 이하) */
+@media (max-width:767px){
+  :root{--boxH:auto}
+  header{padding:14px 12px 0}
+  .brand{flex-direction:column;align-items:flex-start;gap:10px}
+  .brand h1{font-size:26px}
+  .logo{height:46px}
+  .brand .tag{font-size:12px}
+  .admin-pair{width:100%}
+  .admin-pair .btn,.admin-pair .guide-btn{flex:1 1 auto;text-align:center}
+  nav{margin-top:12px;padding-bottom:12px;gap:6px}
+  nav a{padding:8px 14px;font-size:14px;flex:none}
+  main{padding:18px 12px 48px}
+  .homeTop,.split,.row2,.row3,.grow,.evwrap{grid-template-columns:1fr}
+  .grow button{grid-column:auto}
+  .cards{grid-template-columns:1fr}
+  .team-grid{grid-template-columns:1fr 1fr}
+  .stat{grid-template-columns:1fr 1fr}
+  .calhead,.calgrid{gap:3px}
+  .overlay{padding:16px 8px}
+  .panel{padding:18px 16px}
+  .hero{padding:24px 18px}
+  .hero h2{font-size:26px}
+  .guide{left:8px!important;right:8px!important;top:auto!important;bottom:8px!important;width:auto!important;max-height:62vh}
+  footer{padding:0 12px 32px}
+}
 </style>
 </head>
 <body>
