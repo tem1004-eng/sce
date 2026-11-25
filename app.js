@@ -17,7 +17,7 @@ var LEADERS=[{role:'위원장',name:'이관형 목사',church:'내일교회',cls
 var ID_FIELDS=[{k:'role',label:'직분',req:true},{k:'phone',label:'전화번호',req:true}];
 Object.keys(BOARDS).forEach(function(k){
   var c=BOARDS[k];
-  if(k==='suggestions'){c.fields=c.fields.map(function(f){if(f.k==='church')return {k:'church',label:'교회명'};return f.k==='contact'?{k:'contact',label:'전화번호',req:true}:f;});c.hint=c.hint.replace(/연락처/g,'전화번호').replace(/교회명·직분·/,'직분·');return;}
+  if(k==='suggestions'){c.fields=c.fields.map(function(f){if(f.k==='church')return {k:'church',label:'교회명',req:true};return f.k==='contact'?{k:'contact',label:'전화번호',req:true}:f;});c.hint='교회명은 목록에서 고르고, 목록에 없으면 직접 입력합니다. 교회명·직분·전화번호·내용을 모두 써야 등록됩니다. 전화번호는 관리자만 볼 수 있습니다.';return;}
   c.fields=ID_FIELDS.concat(c.fields);
   c.multiReply=true;
   c.hint=(c.hint||'')+' 글은 직분·전화번호·이름·비밀번호를 모두 써야 등록됩니다. 전화번호는 관리자만 볼 수 있습니다.';
@@ -290,7 +290,43 @@ function detailHTML(key,p){
   b+='<div class="actions"><button class="btn '+(isLiked?'dark':'ghost')+' small" data-act="like" data-key="'+key+'" data-id="'+p.id+'" '+(isLiked?'disabled':'')+'>좋아요 '+(p.likes||0)+'</button><button class="btn ghost small" data-act="edit" data-key="'+key+'" data-id="'+p.id+'">수정</button><button class="btn ghost small" data-act="del" data-key="'+key+'" data-id="'+p.id+'">삭제</button></div>';
   return b;
 }
+/* 교회들의 소리함 글쓰기: 교회 목록(청소년캠프 등록 교회) → 그 교회 사람 이름(가나다순) → 목록에 없으면 직접 입력 */
+function ko(a,b){return String(a).localeCompare(String(b),'ko');}
+function regChurches(){
+  var seen={};(state.data.regs||[]).forEach(function(r){if(r.church)seen[r.church]=true;});
+  return Object.keys(seen).sort(ko);
+}
+function peopleOf(church){
+  var seen={},out=[];
+  (state.data.regs||[]).forEach(function(r){
+    if(r.church!==church||['목회자','교사','학생'].indexOf(r.role)<0)return;
+    var k=r.name+'|'+r.role;if(seen[k])return;seen[k]=true;out.push({name:r.name,role:r.role});
+  });
+  return out.sort(function(a,b){return ko(a.name,b.name);});
+}
+function personOpts(church){
+  if(!church)return '<option value="">교회를 먼저 고르세요</option>';
+  if(church==='__manual')return '<option value="">이름은 아래 칸에 직접 입력하세요</option>';
+  var list=peopleOf(church);
+  return '<option value="">이름을 고르세요</option>'+list.map(function(x,i){return '<option value="'+i+'">'+esc(x.name)+' ('+esc(x.role)+')</option>';}).join('');
+}
+function sugFormHTML(m){
+  var cfg=BOARDS.suggestions;var p=m.post||{};var isEdit=!!m.pw||!!m.post;
+  var cur=p.church||'';var chs=regChurches();var isManual=!!cur&&chs.indexOf(cur)<0;
+  var chOpts='<option value="">교회를 고르세요</option>'+chs.map(function(c){return '<option value="'+esc(c)+'"'+(c===cur?' selected':'')+'>'+esc(c)+'</option>';}).join('')+
+    '<option value="__manual"'+(isManual?' selected':'')+'>목록에 없는 교회 (직접 입력)</option>';
+  var manualLab='<label class="church-manual"'+(isManual?'':' style="display:none"')+'>교회명 직접 입력<input name="church_txt" value="'+esc(isManual?cur:'')+'"></label>';
+  var person=isEdit?'':'<label>이름 고르기<select name="person_sel">'+personOpts(cur)+'</select></label>';
+  var auth=isEdit?'':'<div class="row2"><label>이름<input name="name" required></label><label>비밀번호<input type="password" name="pw" required placeholder="수정·삭제에 쓰입니다"></label></div>';
+  return '<form data-form="write" data-key="suggestions" data-id="'+(p.id||'')+'" data-pw="'+esc(m.pw||'')+'"><h3>'+(isEdit?'글 수정':'글쓰기')+' · '+cfg.title+'</h3>'+
+    '<label>제목<input name="title" value="'+esc(p.title||'')+'" required></label>'+
+    '<label>교회명<select name="church" required>'+chOpts+'</select></label>'+manualLab+person+
+    '<div class="row2"><label>직분<input name="role" value="'+esc(p.role||'')+'" required></label><label>전화번호<input name="contact" value="'+esc(p.contact||'')+'" required></label></div>'+
+    '<label>건의 내용<textarea name="desc" required>'+esc(p.desc||'')+'</textarea></label>'+
+    auth+'<p class="err"></p><div class="actions"><button type="button" class="btn ghost" data-act="close">취소</button><button class="btn">'+(isEdit?'저장':'등록')+'</button></div></form>';
+}
 function writeFormHTML(m){
+  if(m.key==='suggestions')return sugFormHTML(m);
   var cfg=BOARDS[m.key];var p=m.post||{};var isEdit=!!m.post;
   var fields=cfg.fields.map(function(f){var req=f.req?' required':'';return f.type==='textarea'?'<label>'+f.label+'<textarea name="'+f.k+'"'+req+'>'+esc(p[f.k]||'')+'</textarea></label>':'<label>'+f.label+'<input name="'+f.k+'" '+(f.type==='url'?'type="url"':'')+' value="'+esc(p[f.k]||'')+'"'+req+'></label>';}).join('');
   var title=cfg.titleField?'<label>제목<input name="title" value="'+esc(p.title||'')+'" required></label>':'';
@@ -384,6 +420,7 @@ async function saveBoard(f){
   var data={};
   if(cfg.titleField)data.title=val(f,'title');
   cfg.fields.forEach(function(x){data[x.k]=val(f,x.k);});
+  if(key==='suggestions'&&data.church==='__manual')data.church=val(f,'church_txt');
   var missing=(cfg.titleField&&!data.title)||cfg.fields.some(function(x){return x.req&&!data[x.k];})||(!editing&&(!name||!pw));
   if(missing){setErr(f,cfg.requiredAll?'빈칸이 있습니다. 모두 채워주세요.':'필수 항목을 입력해 주세요.');return;}
   if(data.url&&!/^https?:\/\//.test(data.url)){setErr(f,'유튜브 주소는 https://로 시작해야 합니다.');return;}
@@ -482,3 +519,16 @@ window.addEventListener('load',function(){
   setInterval(function(){if(!isEditing()&&!state.modal)loadAll().catch(function(){});},30000);
 });
 
+/* 교회들의 소리함 글쓰기: 교회를 고르면 이름 목록이 바뀌고, 이름을 고르면 이름·직분이 채워집니다 */
+document.addEventListener('change',function(e){
+  var t=e.target;var f=t.form;
+  if(!f||f.dataset.key!=='suggestions')return;
+  if(t.name==='church'){
+    var lab=f.querySelector('.church-manual');if(lab)lab.style.display=t.value==='__manual'?'':'none';
+    var ps=f.elements.person_sel;if(ps)ps.innerHTML=personOpts(t.value);
+  }
+  if(t.name==='person_sel'&&t.value!==''){
+    var list=peopleOf(f.elements.church.value);var pp=list[+t.value];
+    if(pp){f.elements.name.value=pp.name;f.elements.role.value=pp.role;}
+  }
+});
