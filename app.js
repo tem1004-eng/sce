@@ -175,7 +175,7 @@ function vIntro(){
 /* 메인 영상 뷰어: 목록의 첫 영상을 바로 재생하고, 목록 카드를 누르면 그 영상으로 바뀝니다 */
 function ytId(url){var m=String(url||'').match(/(?:youtu\.be\/|v=|\/shorts\/|\/embed\/)([A-Za-z0-9_-]{6,})/);return m?m[1]:'';}
 function homeVideoSec(){
-  var list=(state.data.videos||[]).slice().sort(byDate).slice(0,3);
+  var list=(state.data.videos||[]).slice().sort(byDate).slice(0,10);
   var head='<div class="bar"><h2>영상 게시판</h2><a class="meta" href="#videos">더보기 →</a></div>';
   if(!list.length)return '<section>'+head+'<p class="empty">아직 올라온 글이 없습니다.</p></section>';
   var cur=list.find(function(p){return p.id===state.homeVideoId;})||list[0];
@@ -183,13 +183,45 @@ function homeVideoSec(){
   var player=id
     ?'<div class="ytwrap"><iframe src="https://www.youtube.com/embed/'+esc(id)+'" title="'+esc(cur.title||'영상')+'" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe></div>'
     :'<p class="empty">유튜브 주소를 확인해 주세요.</p>';
-  var cards=list.map(function(p){
+  var cards=carouselHTML('videos',list.map(function(p){
     return '<article class="card vpick'+(p.id===cur.id?' on':'')+'" tabindex="0" data-act="pickVideo" data-id="'+p.id+'"><h3>'+esc(p.title||'(제목 없음)')+'</h3><p class="meta">'+esc(p.name)+' · '+fmtDate(p.createdAt)+'</p></article>';
-  }).join('');
-  return '<section>'+head+'<div class="vviewer"><div class="vplayer">'+player+'<h3>'+esc(cur.title||'(제목 없음)')+'</h3>'+(cur.desc?'<p class="excerpt">'+esc(cur.desc)+'</p>':'')+'</div></div><div class="cards">'+cards+'</div></section>';
+  }));
+  return '<section>'+head+'<div class="vviewer"><div class="vplayer">'+player+'<h3>'+esc(cur.title||'(제목 없음)')+'</h3>'+(cur.desc?'<p class="excerpt">'+esc(cur.desc)+'</p>':'')+'</div></div>'+cards+'</section>';
 }
+/* 메인 사진 게시판: 최근 10장을 가로 3장씩 오른쪽→왼쪽으로 돌려 보여 줍니다 */
+function homePhotoSec(){
+  var list=(state.data.photos||[]).slice().sort(byDate).slice(0,10);
+  return '<section><div class="bar"><h2>사진 게시판</h2><a class="meta" href="#photos">더보기 →</a></div>'+
+    carouselHTML('photos',list.map(function(p){return postCard('photos',p);}))+'</section>';
+}
+/* 가로 3장씩 보여 주는 회전 띠. 항목이 3개를 넘으면 4.5초마다 한 칸씩 넘어가고, 끝까지 가면 처음으로 돌아갑니다 */
+function carouselHTML(key,htmls){
+  if(!htmls.length)return '<p class="empty">아직 올라온 글이 없습니다.</p>';
+  var all=htmls.length>3?htmls.concat(htmls):htmls;
+  return '<div class="car" data-car="'+key+'" data-n="'+htmls.length+'"><div class="car-track">'+all.map(function(h){return '<div class="car-item">'+h+'</div>';}).join('')+'</div></div>';
+}
+var CAR_TIMERS=[];
+function initCarousels(){
+  CAR_TIMERS.forEach(function(t){clearInterval(t);});CAR_TIMERS=[];
+  document.querySelectorAll('.car[data-n]').forEach(function(el){
+    var n=+el.getAttribute('data-n');if(n<=3)return;
+    var track=el.querySelector('.car-track');var i=0,paused=false;
+    function go(){track.style.transform='translateX('+(-i*el.clientWidth/3)+'px)';}
+    el.addEventListener('mouseenter',function(){paused=true;});
+    el.addEventListener('mouseleave',function(){paused=false;});
+    go();
+    CAR_TIMERS.push(setInterval(function(){
+      if(paused)return;
+      track.style.transition='transform .7s ease';
+      i++;go();
+      if(i===n){setTimeout(function(){track.style.transition='none';i=0;go();},760);}
+    },4500));
+  });
+}
+window.addEventListener('resize',function(){clearTimeout(window.__carResize);window.__carResize=setTimeout(initCarousels,200);});
 function homeBoardSec(key){
   if(key==='videos')return homeVideoSec();
+  if(key==='photos')return homePhotoSec();
   var cfg=BOARDS[key];var list=(state.data[cfg.coll]||[]).slice().sort(byDate).slice(0,3);
   return '<section><div class="bar"><h2>'+cfg.title+'</h2><a class="meta" href="#'+key+'">더보기 →</a></div><div class="cards">'+(list.map(function(p){return postCard(key,p);}).join('')||'<p class="empty">아직 올라온 글이 없습니다.</p>')+'</div></section>';
 }
@@ -225,6 +257,7 @@ var VIEWS={home:vHome,intro:vIntro,people:vPeople,plan:vPlan,videos:function(){r
 function render(){
   $('#view').innerHTML=VIEWS[state.route]();
   renderModal(true);
+  initCarousels();
 }
 function renderAdminState(){
   var b=$('#adminBtn');b.textContent=state.admin?'관리자 로그아웃':'관리자';b.dataset.act=state.admin?'adminLogout':'adminOpen';

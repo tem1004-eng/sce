@@ -205,6 +205,7 @@ function api_create(coll, fields, pw) {
       if (!String(f.role || '').trim() || !String(f.phone || f.contact || '').trim()) {
         throw new Error('직분과 전화번호를 모두 입력해 주세요.');
       }
+      if (coll === 'suggestions' && !String(f.church || '').trim()) throw new Error('교회명을 골라 주세요.');
       obj.pwHash = hash_(f.pw);
     }
     obj.createdAt = Date.now();
