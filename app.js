@@ -104,8 +104,22 @@ function homeViewerHTML(){
 var INTRO_TABS={badge:'SCE 뺏지 설명',creed:'SCE 강령',song:'SCE운동가'};
 function introDetailHTML(){
   var k=state.introTab;if(!k||!INTRO_TABS[k])return '';
-  var body=k==='badge'?badgeHTML():'<p class="empty" style="margin:0">'+INTRO_TABS[k]+'의 내용은 아직 준비 중입니다. 내용을 알려 주시면 이 자리에 넣겠습니다.</p>';
+  var body=k==='badge'?badgeHTML():k==='creed'?creedHTML():'<p class="empty" style="margin:0">'+INTRO_TABS[k]+'의 내용은 아직 준비 중입니다. 내용을 알려 주시면 이 자리에 넣겠습니다.</p>';
   return '<section class="introbox"><div class="bar"><h2>'+INTRO_TABS[k]+'</h2><button class="btn ghost small" data-act="introTab" data-tab="'+k+'">닫기</button></div>'+body+'</section>';
+}
+/* SCE 강령 */
+function creedHTML(){
+  var items=[
+    ['제1항 (우리의 신조)','우리의 신조는 전통적 웨스트민스터 신앙고백서 및 대·소요리문답이다.'],
+    ['제2항 (우리의 목적)','우리의 목적은 예수님의 말씀을 따르는 제자가 되어 세상의 빛과 소금이 되는 것이다.'],
+    ['제3항 (우리의 사명)','우리의 사명은 개혁주의 신앙을 바탕으로 가정 복음화, 학원 복음화, 민족 복음화, 세계 복음화의 불씨가 되는 것이다.'],
+    ['제4항 (우리의 생활 중심 원리)','우리의 생활 중심 원리는 하나님 중심, 성경 중심, 교회 중심, 개혁 중심이다.']
+  ];
+  return '<div class="creed-desc">'+
+    '<p>SCE(기독학생면려회, Student Christian Endeavor) 강령은 대한예수교장로회(합동) 총회 산하 학생·청년 신앙 운동 단체의 정체성과 목표를 담은 4가지 핵심 선언입니다.</p>'+
+    '<h3>SCE 강령 전문</h3>'+
+    '<ul>'+items.map(function(it){return '<li><strong>'+esc(it[0])+'.</strong> '+esc(it[1])+'</li>';}).join('')+'</ul>'+
+    '</div>';
 }
 /* SCE 뺏지 설명: 뺏지(로고) 이미지의 내용을 정리한 글 */
 function badgeHTML(){
