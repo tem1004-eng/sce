@@ -39,7 +39,9 @@ async function uploadFile(file,maxMB){
 }
 async function loadAll(){
   var r=await call('api_load',state.adminPw);
+  var prev=JSON.stringify([state.data,state.adminSet,state.admin]);
   state.data=r.data;state.adminSet=r.adminSet;state.admin=r.admin;
+  if(state.route==='home'&&prev===JSON.stringify([state.data,state.adminSet,state.admin]))return;
   refresh();
 }
 function isEditing(){var a=document.activeElement;return !!(a&&$('#view').contains(a)&&/INPUT|TEXTAREA|SELECT/.test(a.tagName));}
@@ -121,12 +123,29 @@ function vIntro(){
     '<section><h2>함께 하는 단체</h2><div class="linkgrid">'+LINKS.map(function(l){return l.url?'<a href="'+esc(l.url)+'" target="_blank" rel="noopener">'+esc(l.label)+' ↗</a>':'<span class="off">'+esc(l.label)+'<br><small>주소 준비 중</small></span>';}).join('')+'</div></section>';
 }
 /* 메인: 위쪽 사역계획 · 포스터, 아래 영상 · 사진 · 찬양 게시판 */
+/* 메인 영상 뷰어: 목록의 첫 영상을 바로 재생하고, 목록 카드를 누르면 그 영상으로 바뀝니다 */
+function ytId(url){var m=String(url||'').match(/(?:youtu\.be\/|v=|\/shorts\/|\/embed\/)([A-Za-z0-9_-]{6,})/);return m?m[1]:'';}
+function homeVideoSec(){
+  var list=(state.data.videos||[]).slice().sort(byDate).slice(0,3);
+  var head='<div class="bar"><h2>영상 게시판</h2><a class="meta" href="#videos">더보기 →</a></div>';
+  if(!list.length)return '<section>'+head+'<p class="empty">아직 올라온 글이 없습니다.</p></section>';
+  var cur=list.find(function(p){return p.id===state.homeVideoId;})||list[0];
+  var id=ytId(cur.url);
+  var player=id
+    ?'<div class="ytwrap"><iframe src="https://www.youtube.com/embed/'+esc(id)+'" title="'+esc(cur.title||'영상')+'" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe></div>'
+    :'<p class="empty">유튜브 주소를 확인해 주세요.</p>';
+  var cards=list.map(function(p){
+    return '<article class="card vpick'+(p.id===cur.id?' on':'')+'" tabindex="0" data-act="pickVideo" data-id="'+p.id+'"><h3>'+esc(p.title||'(제목 없음)')+'</h3><p class="meta">'+esc(p.name)+' · '+fmtDate(p.createdAt)+'</p></article>';
+  }).join('');
+  return '<section>'+head+'<div class="vviewer"><div class="vplayer">'+player+'<h3>'+esc(cur.title||'(제목 없음)')+'</h3>'+(cur.desc?'<p class="excerpt">'+esc(cur.desc)+'</p>':'')+'</div></div><div class="cards">'+cards+'</div></section>';
+}
 function homeBoardSec(key){
+  if(key==='videos')return homeVideoSec();
   var cfg=BOARDS[key];var list=(state.data[cfg.coll]||[]).slice().sort(byDate).slice(0,3);
   return '<section><div class="bar"><h2>'+cfg.title+'</h2><a class="meta" href="#'+key+'">더보기 →</a></div><div class="cards">'+(list.map(function(p){return postCard(key,p);}).join('')||'<p class="empty">아직 올라온 글이 없습니다.</p>')+'</div></section>';
 }
 function vHome(){
-  return '<section><div class="homeTop">'+planPanelHTML()+posterPanelHTML()+'</div></section>'+homeBoardSec('videos')+homeBoardSec('photos')+homeBoardSec('songs');
+  return '<section><div class="homeTop">'+planPanelHTML()+posterPanelHTML()+'</div></section>'+homeVideoSec()+homeBoardSec('photos')+homeBoardSec('songs');
 }
 function vPeople(){return '<section><h2>섬기는 분들</h2><div class="cards">'+LEADERS.map(function(l){return '<article class="card"><span class="role '+l.cls+'">'+esc(l.role)+'</span><h3>'+esc(l.name)+'</h3>'+(l.church?'<p class="meta">'+esc(l.church)+'</p>':'')+'</article>';}).join('')+'</div></section>';}
 function vPlan(){
@@ -270,6 +289,7 @@ var ACT={
   introTab:function(d){state.introTab=state.introTab===d.tab?'':d.tab;render();},
   homePg:function(d){state.homePage=Math.max(0,(state.homePage||0)+Number(d.d));render();},
   homeTab:function(d){state.homeTab=d.tab;render();},
+  pickVideo:function(d){state.homeVideoId=d.id;render();},
   viewEvent:function(d){state.viewEventId=d.id;render();},
   posterGo:function(d){state.eventId=d.id;state.campTab='event';state.roomDraft=null;localStorage.setItem('dgsce.event',d.id);if(location.hash==='#camp')route();else location.hash='#camp';},
   planNew:function(){if(state.admin)openModal('plan');},
