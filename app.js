@@ -13,6 +13,15 @@ var BOARDS={
 };
 var LINKS=[{label:'대경SCE 페이스북',url:'https://www.facebook.com/p/%EB%8C%80%EA%B5%AC%EA%B2%BD%EB%B6%81-SCE-100092669511776/?locale=ko_KR'},{label:'대경SCE 유튜브',url:'https://www.youtube.com/@%EB%8C%80%EA%B5%AC%EA%B2%BD%EB%B6%81SCE-x7n'},{label:'대신대SCE',url:''},{label:'총회학지부',url:'http://scekorea.org/'},{label:'대신대학교',url:'https://www.daeshin.ac.kr/html/intro/'}];
 var LEADERS=[{role:'위원장',name:'이관형 목사',church:'내일교회',cls:''},{role:'대구지역 총무',name:'김창범 목사',church:'내일교회',cls:'sun'},{role:'경북지역 총무',name:'백성현 목사',church:'구미은혜로교회',cls:'sun'},{role:'행정 총무',name:'윤경화 집사',church:'내일교회',cls:'sky'},{role:'회계',name:'최신효 장로',church:'가창대일교회',cls:'sky'}];
+/* 모든 게시판: 교회명·직분·전화번호를 필수로 받습니다 (영상·사진·찬양·악보 게시판은 답글도 달 수 있습니다) */
+var ID_FIELDS=[{k:'role',label:'직분',req:true},{k:'phone',label:'전화번호',req:true}];
+Object.keys(BOARDS).forEach(function(k){
+  var c=BOARDS[k];
+  if(k==='suggestions'){c.fields=c.fields.map(function(f){if(f.k==='church')return {k:'church',label:'교회명'};return f.k==='contact'?{k:'contact',label:'전화번호',req:true}:f;});c.hint=c.hint.replace(/연락처/g,'전화번호').replace(/교회명·직분·/,'직분·');return;}
+  c.fields=ID_FIELDS.concat(c.fields);
+  c.multiReply=true;
+  c.hint=(c.hint||'')+' 글은 직분·전화번호·이름·비밀번호를 모두 써야 등록됩니다. 전화번호는 관리자만 볼 수 있습니다.';
+});
 var state={data:{videos:[],photos:[],songs:[],campsongs:[],sheets:[],suggestions:[],events:[],regs:[],plans:[],cal:[],eventdocs:[]},homeTab:'videos',introTab:'',viewEventId:'',admin:false,adminPw:'',adminSet:true,route:'intro',songTab:'good',campTab:'event',eventId:localStorage.getItem('dgsce.event')||'',teamCount:5,roomDraft:null,modal:null};
 
 var $=function(s){return document.querySelector(s);};
@@ -50,7 +59,7 @@ function refresh(){if(!isEditing())render();}
 /* ---------- 게시판 공통 ---------- */
 var byDate=function(a,b){return (b.createdAt||0)-(a.createdAt||0);};
 function excerpt(p){return (p.desc||'').replace(/\s+/g,' ').slice(0,80);}
-function postCard(key,p){var cfg=BOARDS[key];var img=cfg.image&&p.image?'<img src="'+esc(p.image)+'" alt="">':'';var title=cfg.titleField?p.title:excerpt(p);return '<article class="card" tabindex="0" data-act="open" data-key="'+key+'" data-id="'+p.id+'">'+img+'<h3>'+esc(title||'(제목 없음)')+'</h3>'+(cfg.titleField&&p.desc?'<p class="excerpt">'+esc(excerpt(p))+'</p>':'')+'<p class="meta">'+esc(p.name)+' · '+fmtDate(p.createdAt)+' · 조회 '+(p.views||0)+' · 좋아요 '+(p.likes||0)+'</p></article>';}
+function postCard(key,p){var cfg=BOARDS[key];var img=cfg.image&&p.image?'<img src="'+esc(p.image)+'" alt="">':'';var title=cfg.titleField?p.title:excerpt(p);return '<article class="card" tabindex="0" data-act="open" data-key="'+key+'" data-id="'+p.id+'">'+img+'<h3>'+esc(title||'(제목 없음)')+'</h3>'+(cfg.titleField&&p.desc?'<p class="excerpt">'+esc(excerpt(p))+'</p>':'')+'<p class="meta">'+esc(p.name)+' · '+fmtDate(p.createdAt)+' · 조회 '+(p.views||0)+' · 좋아요 '+(p.likes||0)+(cfg.multiReply?' · 답글 '+((p.replies||[]).length):'')+'</p></article>';}
 function boardHTML(key){var cfg=BOARDS[key];var list=(state.data[cfg.coll]||[]).slice().sort(byDate);var btnLabel=key==='photos'?'사진 올리기':'글쓰기';return '<div class="bar"><h2>'+cfg.title+'</h2><button class="btn" data-act="write" data-key="'+key+'">'+btnLabel+'</button></div><p class="hint">'+esc(cfg.hint)+'</p><div class="cards">'+(list.map(function(p){return postCard(key,p);}).join('')||'<p class="empty">아직 올라온 글이 없습니다.</p>')+'</div>';}
 function findPost(key,id){return (state.data[BOARDS[key].coll]||[]).find(function(p){return p.id===id;});}
 function liked(key,id){try{return !!localStorage.getItem('lk:'+key+':'+id);}catch(e){return false;}}
@@ -239,7 +248,7 @@ function renderModal(keep){
 }
 function modalBody(m){
   if(m.type==='detail')return detailHTML(m.key,findPost(m.key,m.id));
-  if(m.type==='pw')return '<form data-form="pw"><h3>비밀번호 확인</h3><p class="hint">'+(m.then==='del'?'삭제':'수정')+'하려면 글을 쓸 때 정한 비밀번호를 입력하세요.</p><label>비밀번호<input type="password" name="pw" required></label><p class="err"></p><div class="actions"><button type="button" class="btn ghost" data-act="close">취소</button><button class="btn '+(m.then==='del'?'dark':'')+'">'+(m.then==='del'?'삭제하기':'수정하기')+'</button></div></form>';
+  if(m.type==='pw')return '<form data-form="pw"><h3>비밀번호 확인</h3><p class="hint">'+(/^del/.test(m.then)?'삭제':'수정')+'하려면 글을 쓸 때 정한 비밀번호를 입력하세요.</p><label>비밀번호<input type="password" name="pw" required></label><p class="err"></p><div class="actions"><button type="button" class="btn ghost" data-act="close">취소</button><button class="btn '+(/^del/.test(m.then)?'dark':'')+'">'+(/^del/.test(m.then)?'삭제하기':'수정하기')+'</button></div></form>';
   if(m.type==='write')return writeFormHTML(m);
   if(m.type==='photos')return photosFormHTML();
   if(m.type==='cal')return calFormHTML(m.date);
@@ -251,6 +260,15 @@ function modalBody(m){
   if(m.type==='evinfo')return evinfoFormHTML(m);
   if(m.type==='regedit')return regEditFormHTML(m.id);
   return '';
+}
+/* 답글 목록과 답글 쓰기 칸 (이름·직분·교회명·전화번호·비밀번호 필수) */
+function repliesHTML(key,p){
+  var rs=p.replies||[];
+  var list=rs.map(function(r){
+    return '<div class="rcomment"><div class="meta"><b>'+esc(r.name)+'</b> · '+esc(r.role)+' · '+esc(r.church)+(state.admin&&r.phone?' · '+esc(r.phone):'')+' · '+fmtDate(r.createdAt)+' <button class="btn ghost small" data-act="delReply" data-key="'+key+'" data-id="'+p.id+'" data-rid="'+esc(r.rid)+'">삭제</button></div><p>'+esc(r.text).replace(/\n/g,'<br>')+'</p></div>';
+  }).join('');
+  return '<section class="replies"><h4>답글 '+rs.length+'</h4>'+(list||'<p class="empty" style="margin:0">아직 달린 답글이 없습니다.</p>')+
+    '<form data-form="addReply" data-key="'+key+'" data-id="'+p.id+'"><h4>답글 쓰기</h4><div class="row2"><label>이름<input name="name" required></label><label>직분<input name="role" required></label></div><label>전화번호<input name="phone" required></label><label>답글<textarea name="text" required></textarea></label><label>비밀번호<input type="password" name="pw" required placeholder="답글 삭제에 쓰입니다"></label><p class="err"></p><div class="actions"><button class="btn small">답글 남기기</button></div></form></section>';
 }
 function detailHTML(key,p){
   if(!p)return '<p class="empty">글이 삭제되었거나 찾을 수 없습니다.</p>';
@@ -266,7 +284,9 @@ function detailHTML(key,p){
     if(p.reply)b+='<div class="reply"><b>관리자 답글</b><br>'+esc(p.reply).replace(/\n/g,'<br>')+'<div class="meta">'+fmtDate(p.replyAt)+'</div></div>';
     if(state.admin)b+='<form data-form="reply" data-key="'+key+'" data-id="'+p.id+'"><label>답글 작성<textarea name="reply">'+esc(p.reply||'')+'</textarea></label><div class="actions"><button class="btn small">답글 저장</button></div></form>';
   }
-  b+='<p class="meta" style="margin-top:14px">'+esc(p.name)+' · '+fmtDate(p.createdAt)+' · 조회 '+(p.views||0)+'</p>';
+  var who=esc(p.name)+(cfg.multiReply&&p.role?' · '+esc(p.role):'')+(cfg.multiReply&&p.church?' · '+esc(p.church):'')+(cfg.multiReply&&state.admin&&p.phone?' · '+esc(p.phone):'');
+  b+='<p class="meta" style="margin-top:14px">'+who+' · '+fmtDate(p.createdAt)+' · 조회 '+(p.views||0)+'</p>';
+  if(cfg.multiReply)b+=repliesHTML(key,p);
   b+='<div class="actions"><button class="btn '+(isLiked?'dark':'ghost')+' small" data-act="like" data-key="'+key+'" data-id="'+p.id+'" '+(isLiked?'disabled':'')+'>좋아요 '+(p.likes||0)+'</button><button class="btn ghost small" data-act="edit" data-key="'+key+'" data-id="'+p.id+'">수정</button><button class="btn ghost small" data-act="del" data-key="'+key+'" data-id="'+p.id+'">삭제</button></div>';
   return b;
 }
@@ -278,7 +298,7 @@ function writeFormHTML(m){
   var auth=isEdit?'':'<div class="row2"><label>이름<input name="name" required></label><label>비밀번호<input type="password" name="pw" required placeholder="수정·삭제에 쓰입니다"></label></div>';
   return '<form data-form="write" data-key="'+m.key+'" data-id="'+(p.id||'')+'" data-pw="'+esc(m.pw||'')+'"><h3>'+(isEdit?'글 수정':'글쓰기')+' · '+cfg.title+'</h3>'+title+fields+file+auth+'<p class="err"></p><div class="actions"><button type="button" class="btn ghost" data-act="close">취소</button><button class="btn">'+(isEdit?'저장':'등록')+'</button></div></form>';
 }
-function photosFormHTML(){return '<form data-form="photos"><h3>사진 여러 장 올리기</h3><p class="hint">사진을 한꺼번에 고르면 장마다 하나의 글로 등록됩니다. 장당 10MB 이하.</p><label>설명<textarea name="desc"></textarea></label><label>사진 파일 (여러 장 선택)<input type="file" name="files" accept="image/*" multiple required></label><div class="row2"><label>이름<input name="name" required></label><label>비밀번호<input type="password" name="pw" required></label></div><p class="err"></p><div class="actions"><button type="button" class="btn ghost" data-act="close">취소</button><button class="btn">올리기</button></div></form>';}
+function photosFormHTML(){return '<form data-form="photos"><h3>사진 여러 장 올리기</h3><p class="hint">사진을 한꺼번에 고르면 장마다 하나의 글로 등록됩니다. 장당 10MB 이하.</p><label>설명<textarea name="desc"></textarea></label><label>사진 파일 (여러 장 선택)<input type="file" name="files" accept="image/*" multiple required></label><div class="row2"><label>직분<input name="role" required></label><label>전화번호<input name="phone" required></label></div><div class="row2"><label>이름<input name="name" required></label><label>비밀번호<input type="password" name="pw" required></label></div><p class="err"></p><div class="actions"><button type="button" class="btn ghost" data-act="close">취소</button><button class="btn">올리기</button></div></form>';}
 function calFormHTML(date){return '<form data-form="calEvent"><h3>행사 남기기</h3><div class="row2"><label>날짜<input type="date" name="date" value="'+esc(date)+'" required></label><label>시간<input type="time" name="time" required></label></div><label>행사 제목<input name="title" required></label><label>내용<textarea name="memo"></textarea></label><div class="row2"><label>이름<input name="name" required></label><label>비밀번호<input type="password" name="pw" required placeholder="삭제할 때 필요합니다"></label></div><p class="err"></p><div class="actions"><button type="button" class="btn ghost" data-act="close">취소</button><button class="btn">등록</button></div></form>';}
 function adminFormHTML(){
   if(!state.adminSet)return '<form data-form="adminSetup"><h3>관리자 비밀번호 처음 설정</h3><p class="hint">사용할 비밀번호를 정해 주세요 (4자 이상). 저장된 값은 암호화됩니다.</p><label>새 비밀번호<input type="password" name="pw" required minlength="4"></label><p class="err"></p><div class="actions"><button class="btn">설정</button></div></form>';
@@ -320,6 +340,7 @@ var ACT={
   like:function(d){if(liked(d.key,d.id))return;markLiked(d.key,d.id);call('api_bump',BOARDS[d.key].coll,d.id,'likes').then(loadAll).catch(function(){toast('좋아요를 저장하지 못했습니다.');});},
   edit:function(d){if(state.admin)openModal('write',{key:d.key,id:d.id,post:findPost(d.key,d.id),pw:state.adminPw});else openModal('pw',{key:d.key,id:d.id,then:'edit'});},
   del:function(d){openModal('pw',{key:d.key,id:d.id,then:'del'});},
+  delReply:function(d){openModal('pw',{key:d.key,id:d.id,rid:d.rid,then:'delreply'});},
   songTab:function(d){state.songTab=d.tab;render();},
   campTab:function(d){state.campTab=d.tab;render();},
   calDay:function(d){state.calDay=d.iso;render();},
@@ -380,7 +401,8 @@ async function saveBoard(f){
 async function submitPw(f){
   var m=state.modal;var pw=val(f,'pw');
   try{
-    if(m.then==='del'){await call('api_delete',BOARDS[m.key].coll,m.id,pw);toast('삭제되었습니다.');closeModal();await loadAll();}
+    if(m.then==='delreply'){await call('api_deleteReply',BOARDS[m.key].coll,m.id,m.rid,pw);toast('답글을 삭제했습니다.');state.modal={type:'detail',key:m.key,id:m.id};await loadAll();renderModal();}
+    else if(m.then==='del'){await call('api_delete',BOARDS[m.key].coll,m.id,pw);toast('삭제되었습니다.');closeModal();await loadAll();}
     else{await call('api_checkPost',BOARDS[m.key].coll,m.id,pw);state.modal={type:'write',key:m.key,id:m.id,post:findPost(m.key,m.id),pw:pw};renderModal();}
   }catch(e){setErr(f,e.message);}
 }
@@ -404,13 +426,14 @@ var SUBMIT={
   pw:submitPw,
   photos:async function(f){
     var files=[].slice.call(f.elements.files.files||[]);var name=val(f,'name'),pw=val(f,'pw'),desc=val(f,'desc');
-    if(!files.length||!name||!pw){setErr(f,'사진, 이름, 비밀번호를 입력해 주세요.');return;}
+    var role=val(f,'role'),phone=val(f,'phone');
+    if(!files.length||!name||!pw||!role||!phone){setErr(f,'사진, 직분, 전화번호, 이름, 비밀번호를 모두 입력해 주세요.');return;}
     var btn=f.querySelector('button:not([data-act])');btn.disabled=true;var done=0;
     try{
       for(var i=0;i<files.length;i++){
         setErr(f,(i+1)+'/'+files.length+'장 올리는 중...');
         var s=await uploadFile(files[i],10);
-        await call('api_create','photos',{title:files[i].name.replace(/\.[^.]+$/,''),desc:desc,image:s.url,name:name,pw:pw},'');
+        await call('api_create','photos',{title:files[i].name.replace(/\.[^.]+$/,''),desc:desc,image:s.url,name:name,pw:pw,role:role,phone:phone},'');
         done++;
       }
       closeModal();toast(done+'장을 올렸습니다.');await loadAll();
@@ -431,6 +454,14 @@ var SUBMIT={
     var ok=await call('api_checkAdmin',pw);
     if(!ok){setErr(f,'비밀번호가 맞지 않습니다.');return;}
     state.adminPw=pw;closeModal();toast('관리자로 로그인했습니다.');await loadAll();renderAdminState();
+  },
+  addReply:async function(f){
+    var key=f.dataset.key,id=f.dataset.id;
+    var r={name:val(f,'name'),role:val(f,'role'),phone:val(f,'phone'),text:val(f,'text')};
+    var pw=val(f,'pw');
+    if(!r.name||!r.role||!r.phone||!r.text||pw.length<4){setErr(f,'이름·직분·전화번호·답글을 쓰고, 비밀번호는 4자 이상 입력해 주세요.');return;}
+    await call('api_addReply',BOARDS[key].coll,id,r,pw);
+    toast('답글을 남겼습니다.');await loadAll();
   },
   reply:async function(f){await call('api_update',BOARDS[f.dataset.key].coll,f.dataset.id,{reply:val(f,'reply'),replyAt:Date.now()},state.adminPw);toast('답글을 저장했습니다.');await loadAll();},
   event:async function(f){

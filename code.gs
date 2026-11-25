@@ -158,7 +158,10 @@ function api_load(pw) {
   COLLECTIONS.forEach(function (c) {
     data[c] = readAll_(c).map(function (r) {
       var o = omit_(r, ['pwHash']);
-      if (c === 'suggestions' && !admin) delete o.contact; /* 연락처는 관리자만 */
+      if (!admin) { delete o.phone; delete o.contact; } /* 전화번호는 관리자만 */
+      if (o.replies) {
+        o.replies = o.replies.map(function (x) { return admin ? omit_(x, ['pwHash']) : omit_(x, ['pwHash', 'phone']); });
+      }
       return o;
     });
   });
@@ -199,6 +202,9 @@ function api_create(coll, fields, pw) {
       if (!isAdmin_(pw)) throw new Error('관리자만 할 수 있습니다.');
     } else if (coll === 'suggestions' || coll === 'videos' || coll === 'photos' || coll === 'songs' || coll === 'campsongs' || coll === 'sheets' || coll === 'cal') {
       if (!f.name || !f.pw) throw new Error('이름과 비밀번호를 입력해 주세요.');
+      if (!String(f.role || '').trim() || !String(f.phone || f.contact || '').trim()) {
+        throw new Error('직분과 전화번호를 모두 입력해 주세요.');
+      }
       obj.pwHash = hash_(f.pw);
     }
     obj.createdAt = Date.now();
@@ -395,4 +401,46 @@ function api_listMyRegs(eventId, church, pw) {
   return readAll_('regs').filter(function (r) {
     return r.eventId === eventId && r.church === c && canEdit_(r, pw);
   }).map(function (r) { return omit_(r, ['pwHash']); });
+}
+
+/* ---------- 답글 (영상·사진·찬양·악보 게시판): 누구나 이름·직분·교회·전화번호·비밀번호를 써서 남깁니다 ---------- */
+var REPLY_COLLS = ['videos', 'photos', 'songs', 'campsongs', 'sheets'];
+
+function api_addReply(coll, id, fields, pw) {
+  return locked_(function () {
+    if (REPLY_COLLS.indexOf(coll) < 0) throw new Error('답글을 달 수 없는 게시판입니다.');
+    var rec = getOne_(coll, id);
+    if (!rec) throw new Error('글을 찾을 수 없습니다.');
+    var f = fields || {};
+    var r = {
+      name: String(f.name || '').trim(),
+      role: String(f.role || '').trim(),
+      phone: String(f.phone || '').trim(),
+      text: String(f.text || '').trim()
+    };
+    if (!r.name || !r.role || !r.phone || !r.text) throw new Error('이름·직분·전화번호·답글을 모두 입력해 주세요.');
+    if (String(pw || '').length < 4) throw new Error('비밀번호는 4자 이상이어야 합니다.');
+    r.rid = uid_();
+    r.pwHash = hash_(pw);
+    r.createdAt = Date.now();
+    rec.replies = (rec.replies || []).concat([r]);
+    put_(coll, id, rec);
+    return true;
+  });
+}
+
+/* 답글 삭제: 답글을 쓸 때 정한 비밀번호 또는 관리자 비밀번호 */
+function api_deleteReply(coll, id, rid, pw) {
+  return locked_(function () {
+    if (REPLY_COLLS.indexOf(coll) < 0) throw new Error('잘못된 요청입니다.');
+    var rec = getOne_(coll, id);
+    if (!rec) return true;
+    var list = rec.replies || [];
+    var target = list.filter(function (x) { return x.rid === String(rid); })[0];
+    if (!target) return true;
+    if (!canEdit_(target, pw)) throw new Error('비밀번호가 맞지 않습니다.');
+    rec.replies = list.filter(function (x) { return x.rid !== String(rid); });
+    put_(coll, id, rec);
+    return true;
+  });
 }
