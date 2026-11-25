@@ -101,10 +101,10 @@ function homeViewerHTML(){
   return '<div class="tabs">'+tabs.map(function(t){return '<button aria-pressed="'+(tab===t[0])+'" data-act="homeTab" data-tab="'+t[0]+'">'+t[1]+'</button>';}).join('')+'</div><div class="viewer">'+boardHTML(tab)+'</div>';
 }
 /* SCE소개: 소개글 상자 + 세 개의 버튼(뺏지 설명·강령·운동가) + 함께 하는 단체 */
-var INTRO_TABS={badge:'SCE 뺏지 설명',creed:'SCE 강령',song:'SCE운동가'};
+var INTRO_TABS={badge:'SCE 뺏지 설명',creed:'SCE 강령',song:'SCE 역사'};
 function introDetailHTML(){
   var k=state.introTab;if(!k||!INTRO_TABS[k])return '';
-  var body=k==='badge'?badgeHTML():k==='creed'?creedHTML():'<p class="empty" style="margin:0">'+INTRO_TABS[k]+'의 내용은 아직 준비 중입니다. 내용을 알려 주시면 이 자리에 넣겠습니다.</p>';
+  var body=k==='badge'?badgeHTML():k==='creed'?creedHTML():k==='song'?historyHTML():'<p class="empty" style="margin:0">'+INTRO_TABS[k]+'의 내용은 아직 준비 중입니다. 내용을 알려 주시면 이 자리에 넣겠습니다.</p>';
   return '<section class="introbox"><div class="bar"><h2>'+INTRO_TABS[k]+'</h2><button class="btn ghost small" data-act="introTab" data-tab="'+k+'">닫기</button></div>'+body+'</section>';
 }
 /* SCE 강령 */
@@ -119,6 +119,32 @@ function creedHTML(){
     '<p>SCE(기독학생면려회, Student Christian Endeavor) 강령은 대한예수교장로회(합동) 총회 산하 학생·청년 신앙 운동 단체의 정체성과 목표를 담은 4가지 핵심 선언입니다.</p>'+
     '<h3>SCE 강령 전문</h3>'+
     '<ul>'+items.map(function(it){return '<li><strong>'+esc(it[0])+'.</strong> '+esc(it[1])+'</li>';}).join('')+'</ul>'+
+    '</div>';
+}
+/* SCE 역사 */
+function historyHTML(){
+  var secs=[
+    ['SCE의 뿌리와 기원 (1920년대 ~ 해방 전후)',[
+      '1921년 2월 5일: 안대선(W. L. Swallon 또는 아더 앤더슨 등 선교사 계통) 선교사에 의해 경북 안동읍교회에서 한국기독청년면려회(CE)가 처음 조직되었습니다.',
+      '1921년 9월: 장로교단 총회에서 각 교회마다 CE를 조직하기로 가결했습니다.',
+      '1933년: 소년 면려회가 조직되었으나, 이후 일제강점기 말기 신사참배 강요 및 일제의 탄압으로 조직이 해산되었습니다.',
+      '해방 이후: 해방과 함께 면려회 조직이 다시 재건되었습니다.'
+    ]],
+    ['합동교단과 SFC의 분리와 독립 (1960년대)',[
+      '1960년: 장로교 고신측과 승동측(현 합동교단)이 합동을 결의하면서, 당시 승동측에 통일된 학생운동이 없어 고신측의 SFC(학생신앙운동)를 수용하여 함께 활동했습니다.',
+      '1963년: 교단 합동이 분리되는 아픔을 겪으면서 학생 운동 조직도 자연스럽게 분리되었습니다. 이후 합동교단은 독자적인 학생신앙운동의 길을 걷게 됩니다.',
+      '1960~1980년대: 전국 규모의 동계·하계 수련회를 지속적으로 개최하며 중·고·대학생 신앙 훈련과 학원 복음화에 힘썼습니다.'
+    ]],
+    ['현대적 재건과 사역 (2020년대)',[
+      '2021년: 코로나19 장기화로 무너진 다음세대와 교회학교를 일으키기 위해 예장합동 총회가 SCE 재건 및 \'세움\' 발대식을 선포하고 전국 9개 권역별 조직을 구축하며 본격적인 부흥 운동에 나섰습니다.',
+      '현재: 개혁주의 신앙(웨스트민스터 신앙고백서 중심)을 바탕으로 교회 중심, 성경 중심, 하나님 중심의 슬로건 아래 청소년·청년 수련회 및 비전트립, 학원선교 사역을 이어가고 있습니다.'
+    ]]
+  ];
+  return '<div class="history-desc">'+
+    '<p>대한예수교장로회(예장합동) 교단의 SCE(Student Christian Endeavour, 전국기독학생면려회)는 중고등학생 및 청년들의 자발적인 신앙 운동 단체입니다. 그 주요 역사적 흐름은 다음과 같습니다.</p>'+
+    secs.map(function(sec){
+      return '<h3>'+esc(sec[0])+'</h3><ul>'+sec[1].map(function(t){return '<li>'+esc(t)+'</li>';}).join('')+'</ul>';
+    }).join('')+
     '</div>';
 }
 /* SCE 뺏지 설명: 뺏지(로고) 이미지의 내용을 정리한 글 */
