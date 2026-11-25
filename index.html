@@ -1,150 +1,362 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>대경SCE 청소년 사역 홈페이지</title>
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>구미은혜로교회 홈페이지</title>
 <style>
-.admin-pair{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.guide-btn{background:rgba(255,255,255,.08);color:#fff;border:1px solid #4a5a78;border-radius:9px;padding:7px 12px;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
-.guide-btn:hover{background:rgba(255,255,255,.18)}
-.guide{position:fixed;top:120px;right:20px;left:auto;margin:0;width:min(440px,calc(100vw - 24px));max-height:70vh;padding:0;border:1px solid #c9d3e6;border-radius:14px;background:#fff;color:#0b1a33;box-shadow:0 18px 40px rgba(8,20,42,.28);overflow:hidden;z-index:2147483000}
-.guide[open]{display:flex;flex-direction:column}
-dialog.guide:not([open]){display:none!important}
-.guide-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;background:linear-gradient(135deg,#0b1f3f,#1b3a6b);color:#fff;cursor:move;user-select:none;touch-action:none}
-.guide-head strong{font-size:15px}
-.guide-close{background:#ff6a3d;color:#fff;border:0;border-radius:8px;padding:6px 12px;font-weight:700;cursor:pointer}
-.guide-body{padding:14px 16px;overflow-y:auto;font-size:14px;line-height:1.6;color:#0b1a33}
-.guide-body pre{margin:0;white-space:pre-wrap;word-break:keep-all;font-family:inherit}
-.ytwrap{position:relative;width:100%;padding-top:56.25%;border-radius:14px;overflow:hidden;background:#000;margin-bottom:12px}
-.ytwrap iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
-.vviewer{background:#fff;border:1px solid #e4ebf5;border-radius:18px;padding:16px;margin-bottom:14px}
-.vplayer h3{margin:4px 0 6px}
-.vpick.on{border-color:#ff6a3d;box-shadow:0 0 0 2px rgba(255,106,61,.25)}
-/* 기기별 화면 구성: 컴퓨터(기본) · 태블릿 · 스마트폰. 접속한 기기의 가로 폭을 읽어 자동으로 맞춥니다 */
-html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
-img,iframe,video{max-width:100%}
-/* 태블릿 (768px ~ 1023px) */
-@media (max-width:1023px){
-  main{padding:22px 16px 60px}
-  .logo{height:52px}
-  .brand h1{font-size:28px}
-  .cards{grid-template-columns:repeat(auto-fill,minmax(210px,1fr))}
-  .evwrap{grid-template-columns:1fr}
-  .split{grid-template-columns:1fr}
-  .team-grid{grid-template-columns:repeat(auto-fill,minmax(190px,1fr))}
-}
-/* 스마트폰 (767px 이하) */
-@media (max-width:767px){
-  :root{--boxH:auto}
-  header{padding:14px 12px 0}
-  .brand{flex-direction:column;align-items:flex-start;gap:10px}
-  .brand h1{font-size:26px}
-  .logo{height:46px}
-  .brand .tag{font-size:12px}
-  .admin-pair{width:100%}
-  .admin-pair .btn,.admin-pair .guide-btn{flex:1 1 auto;text-align:center}
-  nav{margin-top:12px;padding-bottom:12px;gap:6px}
-  nav a{padding:8px 14px;font-size:14px;flex:none}
-  main{padding:18px 12px 48px}
-  .homeTop,.split,.row2,.row3,.grow,.evwrap{grid-template-columns:1fr}
-  .grow button{grid-column:auto}
-  .cards{grid-template-columns:1fr}
-  .team-grid{grid-template-columns:1fr 1fr}
-  .stat{grid-template-columns:1fr 1fr}
-  .calhead,.calgrid{gap:3px}
-  .overlay{padding:16px 8px}
-  .panel{padding:18px 16px}
-  .hero{padding:24px 18px}
-  .hero h2{font-size:26px}
-  .guide{left:8px!important;right:8px!important;top:auto!important;bottom:8px!important;width:auto!important;max-height:62vh}
-  footer{padding:0 12px 32px}
-}
+:root{--ink:#2b2a27;--muted:#6f6a60;--line:#e5dfd3;--paper:#fbf9f4;--card:#ffffff;--accent:#7a5c2e;--accent-soft:#f1e9da;}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;color:var(--ink);background:var(--paper);line-height:1.7}
+a{color:var(--accent)}
+header.site{position:sticky;top:0;z-index:10;background:rgba(251,249,244,.96);backdrop-filter:blur(6px);border-bottom:1px solid var(--line)}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+.brand{display:flex;align-items:center;justify-content:space-between;height:60px;gap:16px}
+.brand a.logo{text-decoration:none;color:var(--ink)}
+.brand strong{font-size:1.15rem;letter-spacing:-.02em}
+nav ul{list-style:none;display:flex;gap:18px;margin:0;padding:0;flex-wrap:wrap}
+nav a{text-decoration:none;color:var(--ink);font-size:.95rem;padding-bottom:3px;border-bottom:2px solid transparent}
+nav a:hover{color:var(--accent)}
+nav a.current{color:var(--accent);font-weight:600;border-bottom-color:var(--accent)}
+
+.view{display:none}
+.view.active{display:block}
+
+.hero{padding:150px 0 140px;text-align:center;color:#fff;background:linear-gradient(180deg,rgba(18,28,44,.35),rgba(18,28,44,.72)),url(images/church.png) center 40%/cover no-repeat}
+.hero h1{font-size:2.6rem;margin:0 0 14px;letter-spacing:-.03em;text-shadow:0 2px 18px rgba(0,0,0,.35)}
+.hero p{color:#f3ecdf;margin:0 0 30px;font-size:1.1rem;text-shadow:0 1px 10px rgba(0,0,0,.3)}
+.btn{display:inline-block;padding:11px 22px;border-radius:999px;background:var(--accent);color:#fff;text-decoration:none;font-weight:500;border:0;cursor:pointer;font-size:.95rem;font-family:inherit}
+.hero .btn{padding:13px 28px;font-size:1rem;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+
+.page{padding:60px 0 80px;min-height:70vh}
+.page.alt{background:#f6f2ea}
+.page-head{margin-bottom:30px}
+h2{font-size:1.7rem;margin:0 0 6px;letter-spacing:-.02em;position:relative;padding-left:14px}
+h2::before{content:'';position:absolute;left:0;top:.25em;bottom:.25em;width:4px;border-radius:2px;background:var(--accent)}
+.lead{color:var(--muted);margin:0 0 28px}
+h3.sub{font-size:1.2rem;margin:36px 0 14px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:18px}
+.card{display:block;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px;text-decoration:none;color:inherit;transition:transform .2s ease,box-shadow .2s ease}
+.card:hover{transform:translateY(-3px);box-shadow:0 14px 30px rgba(60,40,10,.10)}
+.card h3{margin:0 0 8px;font-size:1.05rem}
+.card p{margin:0;color:var(--muted);font-size:.95rem}
+.photo-wide{width:100%;border-radius:14px;border:1px solid var(--line);margin-bottom:28px;display:block}
+table.times{width:100%;border-collapse:collapse;background:var(--card);border-radius:14px;overflow:hidden;border:1px solid var(--line)}
+table.times th,table.times td{padding:13px 16px;text-align:left;border-bottom:1px solid var(--line);font-size:.97rem}
+table.times th{background:var(--accent-soft);font-weight:600}
+.note{font-size:.85rem;color:var(--muted);margin-top:10px}
+
+.board{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px;margin-bottom:8px}
+form.post{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}
+form.post .full{grid-column:1/-1}
+form.post input,form.post textarea{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font:inherit;background:#fff}
+form.post textarea{min-height:110px;resize:vertical}
+form.post label{font-size:.85rem;color:var(--muted);display:block;margin-bottom:4px}
+.status{font-size:.9rem;color:var(--muted);min-height:1.4em}
+.items{display:grid;gap:12px}
+.item{border:1px solid var(--line);border-radius:12px;padding:14px 16px;background:#fff;transition:box-shadow .2s ease}
+.item:hover{box-shadow:0 8px 20px rgba(60,40,10,.08)}
+.item .t{font-weight:600}
+.item .m{font-size:.82rem;color:var(--muted);margin-top:2px}
+.item .b{white-space:pre-wrap;margin-top:8px;font-size:.95rem}
+.thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;margin-top:6px}
+.thumbs a{display:block;border-radius:10px;overflow:hidden;border:1px solid var(--line);aspect-ratio:4/3;background:#eee}
+.thumbs img{width:100%;height:100%;object-fit:cover;display:block}
+.banner{padding:12px 16px;background:#fff7e6;border:1px solid #ecd9ad;border-radius:10px;color:#6b5320;font-size:.92rem;margin-bottom:16px}
+.empty{color:var(--muted);font-size:.95rem;padding:10px 0}
+footer{padding:36px 0;color:var(--muted);font-size:.9rem;border-top:1px solid var(--line);text-align:center}
+@media(max-width:640px){.hero h1{font-size:1.85rem}.hero{padding:110px 0 100px}form.post{grid-template-columns:1fr}nav ul{gap:12px}}
 </style>
 </head>
 <body>
-<header>
-  <div class="brand">
-    <a class="home" href="#home" aria-label="처음으로">
-      <img class="logo" src="로고45.png" alt="SCE 로고">
-      <div>
-        <p class="tag">대구·경북 청소년 사역단체</p>
-        <h1>대경<span>SCE</span></h1>
-      </div>
-    </a>
-    <div class="admin-pair">
-    <button class="btn ghost small" id="adminBtn" data-act="adminOpen" style="color:#fff;border-color:#4a5a78">관리자</button>
-    <button type="button" class="guide-btn" id="guideBtn">관리자 사용설명</button>
+
+<header class="site">
+  <div class="wrap brand">
+    <a class="logo" href="#home"><strong>구미은혜로교회</strong></a>
+    <nav>
+      <ul>
+        <li><a href="#about">교회소개</a></li>
+        <li><a href="#worship">예배안내</a></li>
+        <li><a href="#bulletin">주보</a></li>
+        <li><a href="#photo">사진</a></li>
+        <li><a href="#music">음악</a></li>
+        <li><a href="#articles">좋은 글</a></li>
+        <li><a href="#files">파일공유</a></li>
+        <li><a href="#visit">오시는 길</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+<section class="view" data-view="home">
+  <div class="hero">
+    <div class="wrap">
+      <h1>구미은혜로교회에 오신 것을 환영합니다</h1>
+      <p>하나님의 은혜 안에서 함께 예배하고, 나누고, 세워져 가는 공동체입니다.</p>
+      <a class="btn" href="#worship">예배 안내 보기</a>
     </div>
   </div>
-  <nav id="nav" aria-label="메뉴">
-    <a href="#intro" data-route="intro">SCE소개</a>
-    <a href="#people" data-route="people">섬기는 분들</a>
-    <a href="#plan" data-route="plan">사역계획·달력</a>
-    <a href="#videos" data-route="videos">영상</a>
-    <a href="#photos" data-route="photos">사진</a>
-    <a href="#songs" data-route="songs">찬양</a>
-    <a href="#camp" data-route="camp">청소년 캠프</a>
-    <a href="#voice" data-route="voice">교회들의 소리함</a>
-  </nav>
-</header>
-<main>
-  <div id="dbNotice"></div>
-  <div id="view" aria-live="polite"></div>
+  <div class="page alt">
+    <div class="wrap">
+      <div class="grid3">
+        <a class="card" href="#about"><h3>교회 소개</h3><p>비전과 섬기는 사역을 소개합니다.</p></a>
+        <a class="card" href="#worship"><h3>예배 안내</h3><p>주일과 기도회 시간을 확인하세요.</p></a>
+        <a class="card" href="#bulletin"><h3>주보</h3><p>매주 주보를 내려받을 수 있습니다.</p></a>
+        <a class="card" href="#photo"><h3>사진</h3><p>교회의 소중한 순간을 함께 봅니다.</p></a>
+        <a class="card" href="#music"><h3>음악</h3><p>찬양과 음악 링크를 나눕니다.</p></a>
+        <a class="card" href="#articles"><h3>좋은 글</h3><p>마음에 남는 글과 묵상을 나눕니다.</p></a>
+        <a class="card" href="#files"><h3>파일 공유</h3><p>문서와 파일을 함께 나눕니다.</p></a>
+        <a class="card" href="#visit"><h3>오시는 길</h3><p>주소와 연락처를 안내합니다.</p></a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="view page" data-view="about">
+  <div class="wrap">
+    <div class="page-head">
+      <h2>교회 소개</h2>
+      <p class="lead">말씀과 기도로 세워지는 교회</p>
+    </div>
+    <img class="photo-wide" src="images/church.png" alt="구미은혜로교회 조감도">
+    <div class="grid3">
+      <div class="card"><h3>우리의 비전</h3><p>복음: 성경통독 30독 · 예배: 성령충만한 예배 · 전도: 30명의 현장예배 · 교육: 예수님의 제자 되기 · 선교: 섬김의 현장을 허락해 주소서</p></div>
+      <div class="card"><h3>담임목사 백성현</h3><p>전도사 김명길과 함께 섬기고 있습니다. [인사말을 여기에 입력하세요]</p></div>
+      <div class="card"><h3>섬기는 사역</h3><p>새벽·금요·수요 기도회, 주일학교·중고등부·청년회, 파송 선교사 기도와 후원, 지역 섬김 사역을 함께합니다.</p></div>
+      <div class="card"><h3>헌금 계좌</h3><p>농협 351-0985-0331-13<br>(예금주: 구미은혜로교회)</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="view page alt" data-view="worship">
+  <div class="wrap">
+    <div class="page-head">
+      <h2>예배 안내</h2>
+      <p class="lead">함께 예배드리는 시간입니다.</p>
+    </div>
+    <table class="times">
+      <tr><th>예배</th><th>시간</th><th>장소</th></tr>
+      <tr><td>새벽기도회</td><td>매일 오전 5시 30분 (토요일 포함)</td><td>[장소 확인]</td></tr>
+      <tr><td>주일학교</td><td>주일 오전 9시 30분</td><td>[장소 확인]</td></tr>
+      <tr><td>주일 오전 예배</td><td>주일 오전 11시</td><td>[장소 확인]</td></tr>
+      <tr><td>주일 오후 예배</td><td>주일 오후 2시</td><td>[장소 확인]</td></tr>
+      <tr><td>수요 예배</td><td>수요일 저녁 7시 30분</td><td>[장소 확인]</td></tr>
+    </table>
+    <p class="note">* 예배 시간은 교회 간판과 주보를 기준으로 했으며, 장소는 확인이 필요합니다.</p>
+
+    <h3 class="sub">2026년 3/4분기 일정</h3>
+    <div class="grid3">
+      <div class="card"><h3>11월 15일 (주일)</h3><p>추수감사주일</p></div>
+      <div class="card"><h3>11월 21일 (토)</h3><p>성도 자녀 결혼식 · 오후 5시 (교회 출발 오후 4시)</p></div>
+      <div class="card"><h3>11월 22일 (주일)</h3><p>오후 예배는 구미노회 40주년 선교기념대회 · 오후 3시 (구미상모교회)</p></div>
+      <div class="card"><h3>11월 29일 (주일)</h3><p>성례주일</p></div>
+      <div class="card"><h3>12월 6일 (주일)</h3><p>성탄트리 점등식</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="view page" data-view="bulletin">
+  <div class="wrap">
+    <div class="page-head">
+      <h2>주보</h2>
+      <p class="lead">주보 파일(이미지 또는 PDF)을 올리고 내려받을 수 있습니다.</p>
+    </div>
+    <div class="board" data-board="bulletin"></div>
+  </div>
+</section>
+
+<section class="view page alt" data-view="photo">
+  <div class="wrap">
+    <div class="page-head">
+      <h2>사진 게시판</h2>
+      <p class="lead">교회 행사와 일상의 사진을 나눠 주세요.</p>
+    </div>
+    <div class="board" data-board="photo"></div>
+  </div>
+</section>
+
+<section class="view page" data-view="music">
+  <div class="wrap">
+    <div class="page-head">
+      <h2>음악 게시판</h2>
+      <p class="lead">찬양과 음악 링크를 함께 나눠 주세요.</p>
+    </div>
+    <div class="board" data-board="music"></div>
+  </div>
+</section>
+
+<section class="view page alt" data-view="articles">
+  <div class="wrap">
+    <div class="page-head">
+      <h2>좋은 글 게시판</h2>
+      <p class="lead">마음에 남는 글과 묵상을 나눠 주세요.</p>
+    </div>
+    <div class="board" data-board="articles"></div>
+  </div>
+</section>
+
+<section class="view page" data-view="files">
+  <div class="wrap">
+    <div class="page-head">
+      <h2>파일 공유 게시판</h2>
+      <p class="lead">문서와 파일을 첨부해 함께 공유할 수 있습니다.</p>
+    </div>
+    <div class="board" data-board="files"></div>
+  </div>
+</section>
+
+<section class="view page alt" data-view="visit">
+  <div class="wrap">
+    <div class="page-head">
+      <h2>오시는 길</h2>
+      <p class="lead">언제나 환영합니다.</p>
+    </div>
+    <div class="grid3">
+      <div class="card"><h3>주소</h3><p>39229 구미시 금오시장로8길 20</p></div>
+      <div class="card"><h3>연락처</h3><p>070-7138-0691</p></div>
+      <div class="card"><h3>주차 안내</h3><p>[주차 안내를 입력하세요]</p></div>
+    </div>
+  </div>
+</section>
+
 </main>
-<footer>대경SCE · 글은 작성할 때 정한 비밀번호로 수정·삭제할 수 있습니다.</footer>
 
-<div class="overlay" id="overlay" role="dialog" aria-modal="true"><div class="panel" id="panel"></div></div>
-<dialog class="guide" id="guide" aria-label="관리자 사용방법">
-  <div class="guide-head" id="guideHead">
-    <strong>관리자 사용방법</strong>
-    <button type="button" class="guide-close" id="guideClose" aria-label="닫기">닫기</button>
-  </div>
-  <div class="guide-body">
-<pre>1. 메인창에 포스터 띄우기
-1) 사역계획·달력에 기초안으로 일정 잡기 - 관리자 비밀번호로 로그인
-2) 그러면 자동으로 "청소년 캠프"에 행사 등록됨
-3) 일반 행사이면 뒤로 가서 나타나고, 그 행사들 가운데
-   가장 핵심 되는 행사 위에 마우스를 올리면 "1번으로 등록"이라는
-   안내 문구가 나옵니다. 클릭하면 그 행사가 1번으로 등록됩니다.
-4) 그 행사의 하위 메뉴가 아래쪽에 나타나면 "편집하기"를 눌러
-   행사 자세한 내용을 남기고, 전단이나 포스터 이미지를 업로드하면
-   메인화면에 행사가 그대로 나타나게 됩니다.
+<footer>
+  <div class="wrap">구미은혜로교회 · 39229 구미시 금오시장로8길 20 · 070-7138-0691<br>© 구미은혜로교회. All rights reserved.</div>
+</footer>
 
-2. 자동 조편성표와 숙소배정표는 관리자 비밀번호로 로그인해야 보입니다</pre>
-  </div>
-</dialog>
-<div class="toast" id="toast" role="status"></div>
-
-<script src="app.js"></script>
-<script src="camp.js"></script>
 <script>
 (function(){
-  var g=document.getElementById('guide'),head=document.getElementById('guideHead'),btn=document.getElementById('guideBtn'),close=document.getElementById('guideClose');
-  if(!g||!btn)return;
-  btn.addEventListener('click',function(){ if(g.open){g.close();} else {g.show();} });
-  close.addEventListener('click',function(){ g.close(); });
-  var drag=null;
-  head.addEventListener('pointerdown',function(e){
-    if(e.target===close)return;
-    var r=g.getBoundingClientRect();
-    drag={dx:e.clientX-r.left,dy:e.clientY-r.top};
-    g.style.right='auto';g.style.left=r.left+'px';g.style.top=r.top+'px';
-    head.setPointerCapture(e.pointerId);
-    e.preventDefault();
+  /* ★ 설정: 구글 Apps Script 배포 후 받은 '웹 앱 URL'을 아래에 붙여 넣으세요. */
+  const API_URL = 'PASTE_APPS_SCRIPT_WEB_APP_URL_HERE';
+
+  /* ---------- 페이지 전환 (#about, #worship 등) ---------- */
+  const VIEWS = ['home','about','worship','bulletin','photo','music','articles','files','visit'];
+  function route(){
+    let name = (location.hash || '').slice(1);
+    if(!VIEWS.includes(name)) name = 'home';
+    document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.dataset.view === name));
+    document.querySelectorAll('nav a').forEach(a => a.classList.toggle('current', a.getAttribute('href') === '#' + name));
+    window.scrollTo(0, 0);
+  }
+  window.addEventListener('hashchange', route);
+  route();
+
+  /* ---------- 게시판 ---------- */
+  const BOARDS = {
+    bulletin:{fields:['title','author','file'], accept:'image/*,application/pdf', titleLabel:'주보 제목 (예: 2026년 11월 15일 주보)'},
+    photo:{fields:['title','author','file'], accept:'image/*', titleLabel:'사진 제목'},
+    music:{fields:['title','author','link','body'], titleLabel:'곡명'},
+    articles:{fields:['title','author','body'], titleLabel:'글 제목'},
+    files:{fields:['title','author','file'], accept:'*/*', titleLabel:'파일 제목'}
+  };
+  const LABELS = {author:'작성자', link:'음악 링크 (URL)', body:'내용 / 메모', file:'첨부 파일 (최대 10MB)'};
+
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const fmt = ts => ts ? new Date(Number(ts)).toLocaleString('ko-KR',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : '';
+  const isImage = t => (t||'').startsWith('image/');
+  const configured = API_URL && !API_URL.startsWith('PASTE_');
+
+  function mountBoard(el){
+    const id = el.dataset.board, cfg = BOARDS[id];
+    el.innerHTML = `
+      <div class="status" data-role="status"></div>
+      <form class="post" data-role="form">
+        <div><label>${cfg.titleLabel}</label><input name="title" required maxlength="120"></div>
+        ${cfg.fields.includes('author') ? `<div><label>${LABELS.author}</label><input name="author" maxlength="40"></div>` : ''}
+        ${cfg.fields.includes('link') ? `<div class="full"><label>${LABELS.link}</label><input name="link" type="url" placeholder="https://..."></div>` : ''}
+        ${cfg.fields.includes('body') ? `<div class="full"><label>${LABELS.body}</label><textarea name="body" maxlength="5000"></textarea></div>` : ''}
+        ${cfg.fields.includes('file') ? `<div class="full"><label>${LABELS.file}</label><input name="file" type="file" ${cfg.accept?`accept="${cfg.accept}"`:''}></div>` : ''}
+        <div class="full"><button class="btn" type="submit">등록하기</button></div>
+      </form>
+      <div class="items" data-role="items"><div class="empty">불러오는 중…</div></div>`;
+    return el;
+  }
+
+  function render(el, rows){
+    const id = el.dataset.board, items = el.querySelector('[data-role="items"]');
+    if(!rows.length){ items.innerHTML = '<div class="empty">아직 등록된 글이 없습니다.</div>'; return; }
+    if(id === 'photo'){
+      const thumbs = rows.filter(r => r.fileUrl).map(r =>
+        `<a href="${esc(r.fileUrl)}" target="_blank" rel="noopener" title="${esc(r.title)}"><img src="${esc(r.fileUrl)}" alt="${esc(r.title)}" loading="lazy"></a>`).join('');
+      items.innerHTML = `<div class="thumbs">${thumbs}</div>` +
+        rows.map(r => `<div class="item"><div class="t">${esc(r.title)}</div><div class="m">${esc(r.author)} · ${fmt(r.createdAt)}</div></div>`).join('');
+      return;
+    }
+    items.innerHTML = rows.map(r => {
+      let extra = '';
+      if(r.link) extra += `<div class="b"><a href="${esc(r.link)}" target="_blank" rel="noopener">${esc(r.link)}</a></div>`;
+      if(r.fileUrl) extra += isImage(r.fileType)
+        ? `<div class="b"><a href="${esc(r.fileUrl)}" target="_blank" rel="noopener"><img src="${esc(r.fileUrl)}" alt="" style="max-width:100%;border-radius:8px"></a></div>`
+        : `<div class="b">📎 <a href="${esc(r.fileUrl)}" target="_blank" rel="noopener">${esc(r.fileName || '첨부 파일 내려받기')}</a></div>`;
+      if(r.body) extra += `<div class="b">${esc(r.body)}</div>`;
+      return `<div class="item"><div class="t">${esc(r.title)}</div><div class="m">${esc(r.author)} · ${fmt(r.createdAt)}</div>${extra}</div>`;
+    }).join('');
+  }
+
+  const readFileBase64 = file => new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result).split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
   });
-  head.addEventListener('pointermove',function(e){
-    if(!drag)return;
-    var w=g.offsetWidth,hh=g.offsetHeight;
-    g.style.left=Math.min(Math.max(0,e.clientX-drag.dx),window.innerWidth-w)+'px';
-    g.style.top=Math.min(Math.max(0,e.clientY-drag.dy),window.innerHeight-hh)+'px';
+
+  async function loadBoard(el){
+    const id = el.dataset.board, items = el.querySelector('[data-role="items"]');
+    try{
+      const res = await fetch(`${API_URL}?board=${encodeURIComponent(id)}`);
+      const rows = await res.json();
+      if(rows.error) throw new Error(rows.error);
+      render(el, rows);
+    }catch(err){
+      console.error(err);
+      items.innerHTML = '<div class="empty">글을 불러오지 못했습니다. 잠시 후 새로고침해 주세요.</div>';
+    }
+  }
+
+  function wireForm(el){
+    const id = el.dataset.board, form = el.querySelector('[data-role="form"]'), status = el.querySelector('[data-role="status"]');
+    if(!configured){
+      status.innerHTML = '<div class="banner">게시판 연결 설정이 필요합니다 (index.html 의 API_URL).</div>';
+      return;
+    }
+    form.addEventListener('submit', async e => {
+      e.preventDefault();
+      const fd = new FormData(form);
+      const payload = { board: id };
+      ['title','author','link','body'].forEach(k => { const v = (fd.get(k) || '').toString().trim(); if(v) payload[k] = v; });
+      const file = fd.get('file');
+      try{
+        status.textContent = '등록 중…';
+        if(file && file.size){
+          if(file.size > 10 * 1024 * 1024){ status.textContent = '파일은 10MB 이하만 올릴 수 있습니다.'; return; }
+          payload.fileName = file.name;
+          payload.fileType = file.type || 'application/octet-stream';
+          payload.fileData = await readFileBase64(file);
+        }
+        // text/plain 으로 보내야 브라우저의 사전 요청(CORS) 없이 Apps Script 로 전달됩니다.
+        const res = await fetch(API_URL, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify(payload) });
+        const out = await res.json();
+        if(!out.ok) throw new Error(out.error || 'failed');
+        form.reset();
+        status.textContent = '등록되었습니다.';
+        loadBoard(el);
+      }catch(err){
+        console.error(err);
+        status.textContent = '등록에 실패했습니다. 잠시 후 다시 시도해 주세요.';
+      }
+    });
+  }
+
+  const boardEls = [...document.querySelectorAll('.board[data-board]')].map(mountBoard);
+  boardEls.forEach(wireForm);
+  boardEls.forEach(el => {
+    if(configured) loadBoard(el);
+    else el.querySelector('[data-role="items"]').innerHTML = '<div class="empty">표시할 글이 없습니다.</div>';
   });
-  function endDrag(){drag=null;}
-  head.addEventListener('pointerup',endDrag);
-  head.addEventListener('pointercancel',endDrag);
 })();
 </script>
 </body>
